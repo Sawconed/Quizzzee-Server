@@ -1,5 +1,10 @@
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
 import bcrypt from "bcrypt";
+
+interface UserModel<T extends { login: (...args: any[]) => Promise<any> }> extends Model<Document> {
+    login: T['login'];
+}
+
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -83,4 +88,25 @@ userSchema.pre("save", async function (next) {
     next();
 })
 
-export default mongoose.model("User", userSchema);
+userSchema.static("login", async function (email: string, password: string) {
+    const user = await this.findOne({ email });
+
+    if (user) {
+        const auth = await bcrypt.compare(password, user.password);
+
+        if (auth) {
+            return user;
+        }
+
+        throw Error("Incorrect Password");
+    }
+
+    throw Error("Incorrect Email");
+});
+
+// const User = mongoose.model("User", userSchema);
+
+const User = mongoose.model<Document, UserModel<{ login: (...args: any[]) => Promise<any> }>>('User', userSchema);
+
+
+export default User;
