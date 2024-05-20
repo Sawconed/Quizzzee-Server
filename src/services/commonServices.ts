@@ -27,25 +27,23 @@ const handleError = (err: any) => {
     return errors;
 }
 
-const createToken = (id: string, expiresIn: number) => {
+const createToken = (id: string, expiresIn: number | undefined) => {
     return jwt.sign({ id }, process.env.JWT_SECRET_KEY as string,
-        { expiresIn: expiresIn * 60 * 60 }
+        expiresIn ? { expiresIn: expiresIn } : {}
     );
 }
 
 export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-
-    const { rememberMe } = req.query;
+    const { email, password, rememberMe } = req.body;
 
     try {
         const user = await User.login(email, password);
 
-        const token = createToken(user._id, rememberMe === 'true' ? 3 * 24 : 1); // if rememberMe is true, token expires in 3 days
+        const token = createToken(user._id, rememberMe ? 3 * 24 * 60 * 60 : undefined); // if rememberMe is true, token expires in 3 days
 
-        res.cookie("jwt", token, { httpOnly: true, maxAge: 60 * 60 * 1000 * (rememberMe === "true" ? 3 * 24 : 1) });
+        // res.cookie("jwt", token, { httpOnly: true, maxAge: 60 * 60 * 1000 * (rememberMe === "true" ? 3 * 24 : 1) });
 
-        res.status(201).json({ user: user._id });
+        res.status(201).json({ user: user._id, access: token });
     } catch (error) {
         const errors = handleError(error);
         res.status(400).send(errors);
