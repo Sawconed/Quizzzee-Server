@@ -6,9 +6,9 @@
 4. Run **_npm run dev_** to start developing
 5. Run **_npm build_** and **_npm start_** for production (optional)
 
-_Disclaimer_: _Try changing MONGO_URI to **127.0.0.1** instead of **localhost** if the connection return error_
+_Disclaimer_: _Try changing MONGO_URI value to **127.0.0.1** instead of **localhost** if the connection return error_
 
-## 2. Syntax convention (Follow please :'>>>)
+## 2. Syntax convention: (Follow please :'>>>)
 
 Unless you are working inside **models** folder, please use **pascalNamingStyle** for other files
 
@@ -22,3 +22,13 @@ Unless you are working inside **models** folder, please use **pascalNamingStyle*
 
 - If new folder is needed, name its name as the plural form of noun
   - _Example:_ ./types
+
+## 3. Git rules
+
+- Make the commit message as detailed as possible
+
+  - _Example:_ User - Added login get and post apis
+
+- Each branch support only one feature, once done, make a new branch to start a new feature
+
+- Be sure to create a pull request after commit and check issues for any news
