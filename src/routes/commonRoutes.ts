@@ -1,6 +1,6 @@
 
 import { Router } from "express";
-import { login, logout, signup } from "../services/commonServices";
+import { login, loginAdmin, logout, signup } from "../services/commonServices";
 
 
 
@@ -9,6 +9,8 @@ const commonRoutes = Router();
 commonRoutes.post('/login', login);
 
 commonRoutes.post('/signup', signup);
+
+commonRoutes.post('/login/admin', loginAdmin);
 
 commonRoutes.get('/logout', logout);
 
