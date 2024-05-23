@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         validate: {
             validator: (v: string) => {
-                return /^[a-zA-Z]{1,20}$/.test(v); // 1-20 characters, letters only
+                return /^[a-zA-Z\s]{1,20}$/.test(v); // 1-20 characters, letters only
             },
             message: (props: any) => `${props.value} is not a valid first name!`
         },
@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         validate: {
             validator: (v: string) => {
-                return /^[a-zA-Z]{1,20}$/.test(v); // 1-20 characters, letters only
+                return /^[a-zA-Z\s]{1,20}$/.test(v); // 1-20 characters, letters only
             },
             message: (props: any) => `${props.value} is not a valid last name!`
         },
