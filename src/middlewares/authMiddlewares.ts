@@ -1,8 +1,5 @@
 import { Request, Response, NextFunction } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-
-dotenv.config({ path: [".env.local", ".env"] });
 
 export const verifyJWT = async (
   req: Request,
