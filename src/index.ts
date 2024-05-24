@@ -3,16 +3,18 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
+import morgan from 'morgan';
 
 import commonRoutes from './routes/commonRoutes';
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import quizzzyRoutes from './routes/quizzzyRoutes';
 import quizzzRoutes from './routes/quizzzRoutes';
-
+import { verifyJWT } from './middlewares/authMiddlewares';
 
 const app = express();
 dotenv.config({ path: ['.env.local', '.env'] });
+app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -29,7 +31,7 @@ mongoose.connect(MONGO_URI)
 
         app.use('/api/commons', commonRoutes);
 
-        app.use('/api/users', userRoutes);
+        app.use('/api/users',verifyJWT,userRoutes);
 
         app.use('/api/admins', adminRoutes);
 
