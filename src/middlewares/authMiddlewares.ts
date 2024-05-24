@@ -34,7 +34,6 @@ export const verifyJWT = async (
     // If token is valid, attach decoded payload (user information) to the request object
 
     req.body = decoded;
-    console.log(req.body);
     next(); // Allow the request to proceed
   });
 };
