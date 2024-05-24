@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 import commonRoutes from './routes/commonRoutes';
 import userRoutes from './routes/userRoutes';
@@ -15,6 +16,7 @@ const app = express();
 dotenv.config({ path: ['.env.local', '.env'] });
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(cors())
 
 const PORT = process.env.PORT || 8080;
 const MONGO_URI = process.env.MONGO_URI as string;
@@ -44,5 +46,3 @@ mongoose.connect(MONGO_URI)
     .catch((error) => {
         console.error(error);
     });
-
-export default app;
