@@ -44,3 +44,5 @@ mongoose.connect(MONGO_URI)
     .catch((error) => {
         console.error(error);
     });
+
+export default app;
