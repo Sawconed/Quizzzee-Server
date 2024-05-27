@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import morgan from 'morgan';
 
 import commonRoutes from './routes/commonRoutes';
 import userRoutes from './routes/userRoutes';
@@ -17,6 +18,7 @@ dotenv.config({ path: ['.env.local', '.env'] });
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors())
+app.use(morgan('dev'));
 
 const PORT = process.env.PORT || 8080;
 const MONGO_URI = process.env.MONGO_URI as string;
