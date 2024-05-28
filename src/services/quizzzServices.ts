@@ -34,7 +34,7 @@ export const getQuizzz = async (req: Request, res: Response) => {
   }
 };
 
-export const createQuizzz = async (req: Request, res: Response) => {
+export const createQuizzz = async (req: Request, res: Response, next: any) => {
   const quizzz = req.body;
   try {
     const newQuizzz = await new Quizzz(quizzz).save();
@@ -44,6 +44,23 @@ export const createQuizzz = async (req: Request, res: Response) => {
     res.status(400).json(errors);
   }
 };
+
+// This method needs to be improved to handle errors 
+export const createMultipleQuizzz = async (
+  req: Request,
+  res: Response,
+) => {
+  const quizzzes = req.body;
+  console.log(quizzzes);
+  try {
+    const newQuizzzes = await Quizzz.insertMany(quizzzes);
+    res.status(201).json(newQuizzzes);
+  } catch (err) {
+    const errors = handleError(err);
+    res.status(400).json(errors);
+  }
+};
+
 export const updateQuizzz = async (req: Request, res: Response) => {
   const { quizzzId } = req.params;
   const quizzz = req.body;
