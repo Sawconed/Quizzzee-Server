@@ -1,5 +1,7 @@
 /node_modules
 /dist
+/test_data
 
 .env
 .env.local
+request.rest
