@@ -36,9 +36,8 @@ export const getQuizzz = async (req: Request, res: Response) => {
 
 export const createQuizzz = async (req: Request, res: Response) => {
   const quizzz = req.body;
-  console.log(quizzz);
   try {
-    const newQuizzz = await Quizzz.create(quizzz);
+    const newQuizzz = await new Quizzz(quizzz).save();
     res.status(201).json(newQuizzz);
   } catch (err) {
     const errors = handleError(err);
