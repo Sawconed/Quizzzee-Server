@@ -45,13 +45,9 @@ export const createQuizzz = async (req: Request, res: Response, next: any) => {
   }
 };
 
-// This method needs to be improved to handle errors 
-export const createMultipleQuizzz = async (
-  req: Request,
-  res: Response,
-) => {
+// This method needs to be improved to handle errors
+export const createMultipleQuizzz = async (req: Request, res: Response) => {
   const quizzzes = req.body;
-  console.log(quizzzes);
   try {
     const newQuizzzes = await Quizzz.insertMany(quizzzes);
     res.status(201).json(newQuizzzes);

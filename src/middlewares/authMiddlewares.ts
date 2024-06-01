@@ -22,7 +22,6 @@ export const verifyJWT = async (
 
   // Verify the token using the secret key
   jwt.verify(token, process.env.JWT_SECRET_KEY as string, (err, decoded) => {
-    console.log(err);
     if (err) {
       if (err.name === "TokenExpiredError") {
         return res.status(403).send({ message: "Forbidden: Token expired" });
