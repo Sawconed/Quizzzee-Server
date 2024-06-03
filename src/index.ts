@@ -11,6 +11,7 @@ import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import quizzzyRoutes from './routes/quizzzyRoutes';
 import quizzzRoutes from './routes/quizzzRoutes';
+import reportRoutes from './routes/reportRoutes';
 
 
 const app = express();
@@ -40,6 +41,8 @@ mongoose.connect(MONGO_URI)
         app.use('/api/quizzzy', quizzzyRoutes);
 
         app.use('/api/quizzz', quizzzRoutes);
+
+        app.use('/api/report', reportRoutes);
 
         app.use((req, res) => {
             res.status(404).send('404 Not Found');
