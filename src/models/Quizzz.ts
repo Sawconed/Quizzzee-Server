@@ -8,12 +8,6 @@ const quizzzSchema = new mongoose.Schema(
       minLength: [6, "Question must be at least 6 characters"],
       maxLength: [255, "Question must be at most 255 characters"],
     },
-    difficulty: {
-      type: String,
-      enum: ["easy", "medium", "hard"],
-      required: true,
-      default: "",
-    },
     answer_fc: {
       type: String,
       required: [true, "Please provide a correct answer"],
