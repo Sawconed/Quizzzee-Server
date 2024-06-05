@@ -3,7 +3,9 @@ import Quizzz from "../models/Quizzz";
 import multer from "multer";
 import path from "path";
 import csv from "csv-parser";
-import excelToJson from "convert-excel-to-json";
+import fs from "fs-extra";
+import convertExcelToJson from "convert-excel-to-json";
+
 const handleError = (err: any) => {
   let errors: { [key: string]: string } = {
     text: "",
@@ -58,11 +60,64 @@ const insertQuizzzes = async (quizzzes: any, res: Response) => {
   }
 };
 
-// This method needs to be improved to handle errors
+// Helper function to transform data
+const transformData = (data: any[]) => {
+  return data.map((item) => ({
+    text: item.Question,
+    answer_fc: item.Answer,
+  }));
+};
+
+// Function to handle CSV files
+const handleCSVFile = (filePath: string, res: Response) => {
+  const results: any[] = [];
+  fs.createReadStream(filePath)
+    .pipe(csv())
+    .on("data", (data) => results.push(data))
+    .on("end", async () => {
+      await fs.remove(filePath);
+      const transformedData = transformData(results);
+      await insertQuizzzes(transformedData, res);
+    })
+    .on("error", async (error) => {
+      await fs.remove(filePath);
+      res.status(500).json({ msg: "Error parsing CSV file", error });
+    });
+};
+
+// Function to handle Excel files
+const handleExcelFile = async (filePath: string, res: Response) => {
+  const excelData = convertExcelToJson({
+    sourceFile: filePath,
+    header: { rows: 1 },
+    columnToKey: { "*": "{{columnHeader}}" },
+  });
+
+  const sheetName = Object.keys(excelData)[0];
+  const sheetData = excelData[sheetName];
+
+  await fs.remove(filePath);
+  const transformedData = transformData(sheetData);
+  await insertQuizzzes(transformedData, res);
+};
+
+// // Function to insert quizzzes into the database
+// const insertManyQuizzzes = async (quizzzes: any[], res: Response) => {
+//   try {
+//     const newQuizzzes = await Quizzz.insertMany(quizzzes);
+//     res.status(201).json(newQuizzzes);
+//   } catch (err) {
+//     const errors = handleError(err);
+//     res.status(400).json(errors);
+//   }
+// };
+
+const upload = multer({ dest: "uploads/" });
+
+// Main function to handle the createMultipleQuizzz request
 export const createMultipleQuizzz = async (req: Request, res: Response) => {
-  const upload = multer({ dest: "uploads/" });
-  const fs = require("fs-extra");
   const uploadSingle = upload.single("file");
+
   uploadSingle(req, res, async (uploadErr) => {
     if (uploadErr) {
       return res
@@ -71,51 +126,20 @@ export const createMultipleQuizzz = async (req: Request, res: Response) => {
     }
 
     try {
-      const filePath = req.file ? path.join("uploads", req.file.filename) : "";
-      const fileExtension = req.file
-        ? path.extname(req.file.originalname).toLowerCase()
-        : "";
+      if (req.file) {
+        const filePath = path.join("uploads", req.file.filename);
+        const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
-      const transformData = (data: any[]) => {
-        return data.map((item: { Question: any; Answer: any }) => ({
-          text: item.Question,
-          answer_fc: item.Answer,
-        }));
-      };
-
-      let quizzzes = [];
-
-      if (fileExtension === ".csv") {
-        const results: any[] = [];
-
-        fs.createReadStream(filePath)
-          .pipe(csv())
-          .on("data", (data: any) => results.push(data))
-          .on("end", async () => {
-            await fs.remove(filePath);
-            quizzzes = transformData(results);
-            await insertQuizzzes(quizzzes, res);
-          })
-          .on("error", async (error: any) => {
-            await fs.remove(filePath);
-            res.status(500).json({ msg: "Error parsing CSV file", error });
-          });
-      } else if (fileExtension === ".xlsx" || fileExtension === ".xls") {
-        const excelData = excelToJson({
-          sourceFile: filePath,
-          header: { rows: 1 },
-          columnToKey: { "*": "{{columnHeader}}" },
-        });
-
-        const sheetName = Object.keys(excelData)[0];
-        const sheetData = excelData[sheetName];
-
-        await fs.remove(filePath);
-        quizzzes = transformData(sheetData);
-        await insertQuizzzes(quizzzes, res);
+        if (fileExtension === ".csv") {
+          handleCSVFile(filePath, res);
+        } else if (fileExtension === ".xlsx" || fileExtension === ".xls") {
+          await handleExcelFile(filePath, res);
+        } else {
+          await fs.remove(filePath);
+          res.status(400).json({ msg: "Unsupported file format" });
+        }
       } else {
-        await fs.remove(filePath);
-        res.status(400).json({ msg: "Unsupported file format" });
+        res.status(400).json({ msg: "No file uploaded" });
       }
     } catch (err) {
       const errors = handleError(err);
@@ -142,6 +166,7 @@ export const updateQuizzz = async (req: Request, res: Response) => {
     res.status(400).json(errors);
   }
 };
+
 export const deleteQuizzz = async (req: Request, res: Response) => {
   const { quizzzId } = req.params;
   try {
