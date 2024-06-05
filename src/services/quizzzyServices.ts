@@ -77,3 +77,55 @@ export const deleteQuizzzy = async (req: Request, res: Response) => {
     res.status(400).json(errors);
   }
 };
+
+export const blockQuizzzy = async (req: Request, res: Response) => {
+  const { quizzzyId } = req.params;
+  try {
+    const updatedQuizzzy = await Quizzzy.findByIdAndUpdate(
+      quizzzyId,
+      { isActive: false },
+      { new: true }
+    ).exec();
+
+    if (updatedQuizzzy) {
+      return res
+        .status(200)
+        .json({
+          message: "Quizzzy blocked successfully",
+          quizzzy: updatedQuizzzy,
+        });
+    } else {
+      return res.status(404).json({ message: "Quizzzy not found" });
+    }
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ message: "Error blocking Quizzzy", error: error.message });
+  }
+};
+
+export const unblockQuizzzy = async (req: Request, res: Response) => {
+  const { quizzzyId } = req.params;
+  try {
+    const updatedQuizzzy = await Quizzzy.findByIdAndUpdate(
+      quizzzyId,
+      { isActive: true },
+      { new: true }
+    ).exec();
+
+    if (updatedQuizzzy) {
+      return res
+        .status(200)
+        .json({
+          message: "Quizzzy unblocked successfully",
+          quizzzy: updatedQuizzzy,
+        });
+    } else {
+      return res.status(404).json({ message: "Quizzzy not found" });
+    }
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ message: "Error unblocking Quizzzy", error: error.message });
+  }
+};
