@@ -1,5 +1,6 @@
 import { Request, Response } from "express-serve-static-core";
 import Quizzzy from "../models/Quizzzy";
+import ExcelJS from "exceljs";
 
 const handleError = (err: any) => {
   let errors: any = { createdBy: "", title: "", description: "", quizzzes: "" };
@@ -129,3 +130,50 @@ export const unblockQuizzzy = async (req: Request, res: Response) => {
       .json({ message: "Error unblocking Quizzzy", error: error.message });
   }
 };
+
+export const downloadExcelSample = (req: Request, res: Response) => {
+  try {
+    let workbook = new ExcelJS.Workbook();
+
+    const sheet = workbook.addWorksheet("Quizzzy Sample");
+    sheet.columns = [
+      { header: "question", key: "text", width: 30 },
+      { header: "answer", key: "answer_fc", width: 30 }
+    ];
+
+    sheet.addRow({ text: "Question 1", answer_fc: "Answer 1" });
+    sheet.addRow({ text: "Question 2", answer_fc: "Answer 2" });
+    sheet.addRow({ text: "Question 3", answer_fc: "Answer 3" });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=" + "quizzzy-sample.xlsx"
+    );
+
+    workbook.xlsx.write(res).then(() => {
+      res.end();
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export const downloadCSVSample = (req: Request, res: Response) => {
+  try {
+    const csv = `question,answer\nQuestion 1,Answer 1\nQuestion 2,Answer 2\nQuestion 3,Answer 3`;
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=" + "quizzzy-sample.csv"
+    );
+
+    res.status(200).send(csv);
+  } catch (error) {
+    console.log(error);
+  }
+}

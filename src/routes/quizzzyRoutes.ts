@@ -1,7 +1,9 @@
 import { Router } from "express";
 import {
-   getAllQuizzzy, getQuizzzy, createQuizzzy, updateQuizzzy,deleteQuizzzy,
-   blockQuizzzy, unblockQuizzzy
+   getAllQuizzzy, getQuizzzy, createQuizzzy, updateQuizzzy, deleteQuizzzy,
+   blockQuizzzy, unblockQuizzzy,
+   downloadExcelSample,
+   downloadCSVSample
 } from "../services/quizzzyServices"
 
 const quizzzyRoutes = Router();
@@ -13,4 +15,8 @@ quizzzyRoutes.put("/:quizzzyId", updateQuizzzy)
 quizzzyRoutes.delete("/:quizzzyId", deleteQuizzzy)
 quizzzyRoutes.patch("/:quizzzyId/block", blockQuizzzy);
 quizzzyRoutes.patch("/:quizzzyId/unblock", unblockQuizzzy);
+
+quizzzyRoutes.get("/export/sample/excel", downloadExcelSample);
+quizzzyRoutes.get("/export/sample/csv", downloadCSVSample);
+
 export default quizzzyRoutes;
