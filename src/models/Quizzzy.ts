@@ -11,8 +11,9 @@ const notEmpty = (arr: any[]) => {
 const quizzzySchema = new mongoose.Schema(
   {
     createdBy: {
-      type: String,
-      required: [true, "Creator is required"],
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "User is required"],
     },
     isPrivate: {
       type: Boolean,

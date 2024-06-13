@@ -1,6 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import Quizzzy from "../models/Quizzzy";
 import ExcelJS from "exceljs";
+import mongoose from "mongoose";
 
 const handleError = (err: any) => {
   let errors: any = { createdBy: "", title: "", description: "", quizzzes: "" };
@@ -15,12 +16,19 @@ const handleError = (err: any) => {
 
 export const getAllQuizzzy = async (req: Request, res: Response) => {
   try {
-    const quizzzies = await Quizzzy.find().populate("quizzzes").exec();
+    const quizzzies = await Quizzzy.find()
+      .populate("quizzzes")
+      .populate({
+        path: "createdBy",
+        select: "username -_id",
+      })
+      .exec();
     res.status(200).json(quizzzies);
   } catch (err) {
     res.status(400).json(err);
   }
 };
+
 export const getQuizzzy = async (req: Request, res: Response) => {
   const { quizzzyId } = req.params;
   try {
@@ -28,6 +36,10 @@ export const getQuizzzy = async (req: Request, res: Response) => {
       _id: quizzzyId,
     })
       .populate("quizzzes")
+      .populate({
+        path: "createdBy",
+        select: "username -_id",
+      })
       .exec();
     if (!quizzzy) {
       return res.status(404).json({ message: "Quizzzy not found" });
@@ -37,6 +49,32 @@ export const getQuizzzy = async (req: Request, res: Response) => {
     res.status(400).json(err);
   }
 };
+
+export const getAllQuizzzyWithUserID = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  try {
+    const quizzzies = await Quizzzy.find({
+      createdBy: {
+        $in: new mongoose.Types.ObjectId(userId),
+      },
+    })
+      .populate({
+        path: "createdBy",
+        select: "username -_id",
+      })
+      .populate("quizzzes")
+      .exec();
+    if (quizzzies.length == 0) {
+      return res
+        .status(404)
+        .json({ message: `No quizzzy was found with given userId: ${userId}` });
+    }
+    res.status(200).json(quizzzies);
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
+
 export const createQuizzzy = async (req: Request, res: Response) => {
   const quizzzy = req.body;
   try {
@@ -89,12 +127,10 @@ export const blockQuizzzy = async (req: Request, res: Response) => {
     ).exec();
 
     if (updatedQuizzzy) {
-      return res
-        .status(200)
-        .json({
-          message: "Quizzzy blocked successfully",
-          quizzzy: updatedQuizzzy,
-        });
+      return res.status(200).json({
+        message: "Quizzzy blocked successfully",
+        quizzzy: updatedQuizzzy,
+      });
     } else {
       return res.status(404).json({ message: "Quizzzy not found" });
     }
@@ -115,12 +151,10 @@ export const unblockQuizzzy = async (req: Request, res: Response) => {
     ).exec();
 
     if (updatedQuizzzy) {
-      return res
-        .status(200)
-        .json({
-          message: "Quizzzy unblocked successfully",
-          quizzzy: updatedQuizzzy,
-        });
+      return res.status(200).json({
+        message: "Quizzzy unblocked successfully",
+        quizzzy: updatedQuizzzy,
+      });
     } else {
       return res.status(404).json({ message: "Quizzzy not found" });
     }
@@ -138,7 +172,7 @@ export const downloadExcelSample = (req: Request, res: Response) => {
     const sheet = workbook.addWorksheet("Quizzzy Sample");
     sheet.columns = [
       { header: "question", key: "text", width: 30 },
-      { header: "answer", key: "answer_fc", width: 30 }
+      { header: "answer", key: "answer_fc", width: 30 },
     ];
 
     sheet.addRow({ text: "Question 1", answer_fc: "Answer 1" });
@@ -160,7 +194,7 @@ export const downloadExcelSample = (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 export const downloadCSVSample = (req: Request, res: Response) => {
   try {
@@ -176,4 +210,4 @@ export const downloadCSVSample = (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
   }
-}
+};
