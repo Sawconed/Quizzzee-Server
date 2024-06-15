@@ -10,6 +10,7 @@ import {
   downloadExcelSample,
   downloadCSVSample,
   getAllQuizzzyWithUserID,
+  getAllFavoriteQuizzzy,
 } from "../services/quizzzyServices";
 
 import { createExam, submitAnswer } from "../services/examServices";
@@ -19,6 +20,7 @@ const quizzzyRoutes = Router();
 quizzzyRoutes.get("/", getAllQuizzzy);
 quizzzyRoutes.get("/:quizzzyId", getQuizzzy);
 quizzzyRoutes.get("/:userId/my_quizzzy", getAllQuizzzyWithUserID);
+quizzzyRoutes.get("/:userId/favorite", getAllFavoriteQuizzzy);
 quizzzyRoutes.post("/", createQuizzzy);
 quizzzyRoutes.put("/:quizzzyId", updateQuizzzy);
 quizzzyRoutes.delete("/:quizzzyId", deleteQuizzzy);
