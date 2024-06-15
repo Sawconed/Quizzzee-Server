@@ -125,3 +125,42 @@ export const deleteUser = async (req: Request, res: Response) => {
         res.status(400).json(error);
     }
 };
+
+export const addFavorite = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { quizzzyId } = req.body;
+
+    try {
+        // Check if the quizzzyId is already in the favorites array
+        const isFavoriteExist = await User.findOne({ _id: userId, favorites: quizzzyId });
+
+        if (isFavoriteExist) {
+            return res.status(409).json({ message: "Quizzzy already in favorites" });
+        }
+
+        await User.findByIdAndUpdate(userId, { $push: { favorites: quizzzyId } }, { new: true });
+
+        res.status(201).json("New favorite added successfully");
+    } catch (error) {
+        res.status(500).json(error);
+    }
+}
+export const removeFavorite = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { quizzzyId } = req.body;
+
+    try {
+        // Check if the quizzzyId is in the favorites array
+        const isFavoriteExist = await User.findOne({ _id: userId, favorites: quizzzyId });
+
+        if (!isFavoriteExist) {
+            return res.status(404).json({ message: "Quizzzy not found in favorites" });
+        }
+
+        await User.findByIdAndUpdate(userId, { $pull: { favorites: quizzzyId } }, { new: true });
+
+        res.status(201).json("Favorite removed successfully");
+    } catch (error) {
+        res.status(500).json(error);
+    }
+}

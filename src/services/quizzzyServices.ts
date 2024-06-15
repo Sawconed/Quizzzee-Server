@@ -2,6 +2,7 @@ import { Request, Response } from "express-serve-static-core";
 import Quizzzy from "../models/Quizzzy";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
+import User from "../models/User";
 
 const handleError = (err: any) => {
   let errors: any = { createdBy: "", title: "", description: "", quizzzes: "" };
@@ -23,6 +24,28 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
         select: "username -_id",
       })
       .exec();
+    res.status(200).json(quizzzies);
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
+
+export const getAllFavoriteQuizzzy = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  try {
+    const quizzzies = await User.findById(userId)
+      .populate({
+        path: "favorites",
+        match: { isPrivate: false },
+        populate: {
+          path: "createdBy",
+          select: "username -_id",
+        },
+        select: "title description createdAt updatedAt isPrivate"
+      })
+      .select("favorites -_id")
+      .exec();
+
     res.status(200).json(quizzzies);
   } catch (err) {
     res.status(400).json(err);
