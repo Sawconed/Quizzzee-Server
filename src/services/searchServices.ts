@@ -9,7 +9,7 @@ export const search = async (req: Request, res: Response) => {
   try {
     if (user !== undefined) {
       const users = await User.find({
-        username: { $regex: new RegExp("^" + user, "i") },
+        username: { $regex: new RegExp("" + user, "i") },
         isActive: true,
       });
       if (users.length === 0) {
@@ -20,7 +20,7 @@ export const search = async (req: Request, res: Response) => {
 
     if (quizzzy !== undefined) {
       const quizzzes = await Quizzzy.find({
-        title: { $regex: new RegExp("^" + quizzzy, "i") },
+        title: { $regex: new RegExp("" + quizzzy, "i") },
         isPrivate: false,
       });
       if (quizzzes.length === 0) {
