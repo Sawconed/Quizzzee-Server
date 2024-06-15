@@ -11,13 +11,19 @@ const handleError = (err: any) => {
       errors[properties.path] = properties.message;
     });
   }
-
   return errors;
 };
 
 export const getAllQuizzzy = async (req: Request, res: Response) => {
+  const query = req.query;
   try {
-    const quizzzies = await Quizzzy.find()
+    let quizzzyQuery = {};
+    if (query.isShowAll === "true") {
+      quizzzyQuery = {};
+    } else {
+      quizzzyQuery = { isPrivate: false };
+    }
+    const quizzzies = await Quizzzy.find(quizzzyQuery)
       .populate("quizzzes")
       .populate({
         path: "createdBy",
@@ -41,7 +47,7 @@ export const getAllFavoriteQuizzzy = async (req: Request, res: Response) => {
           path: "createdBy",
           select: "username -_id",
         },
-        select: "title description createdAt updatedAt isPrivate"
+        select: "title description createdAt updatedAt isPrivate",
       })
       .select("favorites -_id")
       .exec();
@@ -57,6 +63,7 @@ export const getQuizzzy = async (req: Request, res: Response) => {
   try {
     const quizzzy = await Quizzzy.findOne({
       _id: quizzzyId,
+      isPrivate: false,
     })
       .populate("quizzzes")
       .populate({
@@ -77,6 +84,7 @@ export const getAllQuizzzyWithUserID = async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
     const quizzzies = await Quizzzy.find({
+      isPrivate: false,
       createdBy: {
         $in: new mongoose.Types.ObjectId(userId),
       },
