@@ -28,7 +28,7 @@ const options: swaggerJsDoc.Options = {
         ],
         servers: [
             {
-                url: "http://localhost:8080/"
+                url: "http://localhost:8080/api/"
             }
         ],
         tags: [
@@ -42,13 +42,13 @@ const options: swaggerJsDoc.Options = {
                 name: "Admins"
             },
             {
-                name: "Quizzzy"
+                name: "Quizzzies"
             },
             {
-                name: "Quizzz"
+                name: "Quizzzes"
             },
             {
-                name: "Report"
+                name: "Reports"
             }
         ]
     },
