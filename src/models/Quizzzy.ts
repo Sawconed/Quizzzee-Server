@@ -8,6 +8,63 @@ const notEmpty = (arr: any[]) => {
   }
 };
 
+/**
+ * Quizzzy Schema
+ * @swagger
+ *   components:
+ *     schemas:
+ *       Quizzzy:
+ *         type: object
+ *         required:
+ *           - createdBy
+ *           - title
+ *         properties:
+ *           createdBy:
+ *             type: string
+ *             description: User ID
+ *           isPrivate:
+ *             type: boolean
+ *             description: Is private
+ *           isActive:
+ *             type: boolean
+ *             description: Is active
+ *           title:
+ *             type: string
+ *             description: Title
+ *           description:
+ *             type: string
+ *             description: Description
+ *           tags:
+ *             type: array
+ *             items:
+ *               type: string
+ *             description: Tags
+ *           duration:
+ *             type: number
+ *             description: Duration
+ *           quizzzes:
+ *             type: array
+ *             items:
+ *               type: string
+ *             description: Quizzzes
+ *           createdAt:
+ *             type: string
+ *             description: Date of creation
+ *           updatedAt:
+ *             type: string
+ *             description: Date of last update
+ *         example:
+ *           createdBy: 60f7b3b3b5f7f00015f2b3b3
+ *           isPrivate: false
+ *           isActive: true
+ *           title: My Quizzzy
+ *           description: This is a quizzzy
+ *           tags: [tag1, tag2]
+ *           duration: 60
+ *           quizzzes: [60f7b3b3b5f7f00015f2b3b3]
+ *           createdAt: 2021-07-21T14:00:00.000Z
+ *           updatedAt: 2021-07-21T14:00:00.000Z
+ */
 const quizzzySchema = new mongoose.Schema(
   {
     createdBy: {

@@ -5,7 +5,65 @@ interface UserModel<T extends { login: (...args: any[]) => Promise<any> }> exten
   login: T['login'];
 }
 
-
+/**
+ * User Schema
+ * @swagger
+ *   components:
+ *     schemas:
+ *       User:
+ *         type: object
+ *         required:
+ *           - email
+ *           - password
+ *         properties:
+ *           username:
+ *             type: string
+ *             description: Username of the user
+ *           email:
+ *             type: string
+ *             description: Email of the user
+ *           password:
+ *             type: string
+ *             description: Password of the user
+ *           firstName:
+ *             type: string
+ *             description: First name of the user
+ *           lastName:
+ *             type: string
+ *             description: Last name of the user
+ *           birthDate:
+ *             type: string
+ *             description: Birth date of the user
+ *           image:
+ *             type: string
+ *             description: Image of the user
+ *           isActive:
+ *             type: boolean
+ *             description: Status of the user
+ *           favorites:
+ *             type: array
+ *             items:
+ *               type: string
+ *             description: Array of Quizzzy IDs
+ *           createdAt:
+ *             type: string
+ *             description: Date of creation
+ *           updatedAt:
+ *             type: string
+ *             description: Date of last update
+ *         example:
+ *           username: user123
+ *           email: user@gmail.com
+ *           password: user123
+ *           firstName: John
+ *           lastName: Doe
+ *           birthDate: 2000-01-01
+ *           image: https://example.com/image.jpg
+ *           isActive: true
+ *           favorites: []
+ *           createdAt: 2021-07-21T14:00:00.000Z
+ *           updatedAt: 2021-07-21T14:00:00.000Z
+ */
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -83,14 +141,14 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-userSchema.pre("save", async function(next) {
+userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);
 
   next();
 })
 
-userSchema.static("login", async function(email: string, password: string) {
+userSchema.static("login", async function (email: string, password: string) {
   const user = await this.findOne({ email }) as any;
 
   if (user) {

@@ -13,6 +13,7 @@ import quizzzyRoutes from './routes/quizzzyRoutes';
 import quizzzRoutes from './routes/quizzzRoutes';
 import reportRoutes from './routes/reportRoutes';
 
+import { swaggerDocs } from './utils/swagger';
 
 const app = express();
 dotenv.config({ path: ['.env.local', '.env'] });
@@ -31,6 +32,8 @@ mongoose.connect(MONGO_URI)
         app.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT} 🚀`);
         });
+
+        swaggerDocs(app, PORT);
 
         app.use('/api/commons', commonRoutes);
 

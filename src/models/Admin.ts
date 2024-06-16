@@ -5,6 +5,42 @@ interface AdminModel<T extends { login: (...args: any[]) => Promise<any> }> exte
     login: T['login'];
 }
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Admin:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           description: Email of the admin
+ *         password:
+ *           type: string
+ *           description: Password of the admin
+ *         isActive:
+ *           type: boolean
+ *           description: Status of the admin
+ *         isSuper:
+ *           type: boolean
+ *           description: Super admin status
+ *         createdAt:
+ *           type: string
+ *           description: Date of creation
+ *         updatedAt:
+ *           type: string
+ *           description: Date of last update
+ *       example:
+ *         email: admin@gmail.com
+ *         password: admin123
+ *         isActive: true
+ *         isSuper: false
+ *         createdAt: 2021-07-21T14:00:00.000Z
+ *         updatedAt: 2021-07-21T14:00:00.000Z
+ */
 const adminSchema = new mongoose.Schema({
     email: {
         type: String,
