@@ -1,6 +1,6 @@
 /**
  * @openapi
- * /api/commons/login:
+ * /commons/login:
  *   post:
  *     tags:
  *       - Commons
@@ -46,7 +46,7 @@
 
 /**
  * @openapi
- * /api/commons/signup:
+ * /commons/signup:
  *   post:
  *     tags:
  *       - Commons
@@ -91,7 +91,7 @@
 
 /**
  * @openapi
- * /api/commons/login/admin:
+ * /commons/login/admin:
  *   post:
  *     tags:
  *       - Commons
@@ -134,7 +134,7 @@
 
 /**
  * @openapi
- * /api/commons/search:
+ * /commons/search:
  *   get:
  *     tags:
  *       - Commons
@@ -162,7 +162,7 @@
 
 /**
  * @openapi
- * /api/commons/logout:
+ * /commons/logout:
  *   get:
  *     tags:
  *       - Commons
