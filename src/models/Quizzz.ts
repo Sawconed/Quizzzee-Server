@@ -1,5 +1,34 @@
 import mongoose from "mongoose";
 
+/**
+ * Quizzz Schema
+ * @swagger
+ *   components:
+ *     schemas:
+ *       Quizzz:
+ *         type: object
+ *         required:
+ *           - text
+ *           - answer_fc
+ *         properties:
+ *           text:
+ *             type: string
+ *             description: Question
+ *           answer_fc:
+ *             type: string
+ *             description: Correct answer
+ *           createdAt:
+ *             type: string
+ *             description: Date of creation
+ *           updatedAt:
+ *             type: string
+ *             description: Date of last update
+ *         example:
+ *           text: What is the capital of France?
+ *           answer_fc: Paris
+ *           createdAt: 2021-07-21T14:00:00.000Z
+ *           updatedAt: 2021-07-21T14:00:00.000Z
+ */
 const quizzzSchema = new mongoose.Schema(
   {
     text: {
