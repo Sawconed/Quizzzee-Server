@@ -27,8 +27,8 @@ quizzzyRoutes.delete("/:quizzzyId", deleteQuizzzy);
 quizzzyRoutes.patch("/:quizzzyId/block", blockQuizzzy);
 quizzzyRoutes.patch("/:quizzzyId/unblock", unblockQuizzzy);
 
-quizzzyRoutes.post("/exam/submit", submitAnswer);
-quizzzyRoutes.post("/exam/:quizzzyId", createExam);
+quizzzyRoutes.post("/:quizzzyId/exam", createExam);
+quizzzyRoutes.post("/:quizzzyId/submit", submitAnswer);
 
 quizzzyRoutes.get("/export/sample/excel", downloadExcelSample);
 quizzzyRoutes.get("/export/sample/csv", downloadCSVSample);
