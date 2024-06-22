@@ -1,5 +1,6 @@
 import { Request, Response } from "express-serve-static-core";
 import Quizzzy from "../models/Quizzzy";
+import Quizzz from "../models/Quizzz";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
 import User from "../models/User";
@@ -24,7 +25,10 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
       quizzzyQuery = { isPrivate: false };
     }
     const quizzzies = await Quizzzy.find(quizzzyQuery)
-      .populate("quizzzes")
+      .populate({
+        path: "quizzzes",
+        select: "text answer_fc",
+      })
       .populate({
         path: "createdBy",
         select: "username -_id",
@@ -65,7 +69,10 @@ export const getQuizzzy = async (req: Request, res: Response) => {
       _id: quizzzyId,
       isPrivate: false,
     })
-      .populate("quizzzes")
+      .populate({
+        path: "quizzzes",
+        select: "text answer_fc",
+      })
       .populate({
         path: "createdBy",
         select: "username -_id",
@@ -107,9 +114,25 @@ export const getAllQuizzzyWithUserID = async (req: Request, res: Response) => {
 };
 
 export const createQuizzzy = async (req: Request, res: Response) => {
-  const quizzzy = req.body;
+  const { createdBy, title, description, tags, quizzzes } = req.body;
   try {
-    const newQuizzzy = await new Quizzzy(quizzzy).save();
+    const newQuizzzes = quizzzes.map((quizz: any) => {
+      return {
+        text: quizz.text,
+        answer_fc: quizz.answer_fc,
+      };
+    });
+
+    const createdQuizzzes = await Quizzz.insertMany(newQuizzzes);
+
+    const newQuizzzy = await new Quizzzy({
+      createdBy,
+      title,
+      description,
+      tags,
+      quizzzes: createdQuizzzes.map((quizz) => quizz._id),
+    }).save();
+
     res.status(201).json(newQuizzzy);
   } catch (err) {
     const errors = handleError(err);

@@ -92,6 +92,7 @@ const quizzzySchema = new mongoose.Schema(
     },
     tags: {
       type: [String],
+      default: [],
     },
     duration: {
       type: Number,
