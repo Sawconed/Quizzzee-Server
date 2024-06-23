@@ -137,6 +137,7 @@ const mode2Submit = (quizzzes: any[], answers: any[]) => {
       index: number;
       _id: string;
       correct: boolean;
+      answer_fc?: string;
     }[];
     point: number;
     error?: boolean;
@@ -148,10 +149,8 @@ const mode2Submit = (quizzzes: any[], answers: any[]) => {
 
   answers.forEach((answer, index) => {
     const quizzz = quizzzes.find((quizzz) => quizzz._id == answer._id);
-    const check : boolean = (quizzz.answer_fc === answer.answer_qt); 
-    if (
-      quizzz && check === answer.answer_us
-    ) {
+    const check: boolean = quizzz.answer_fc === answer.answer_qt;
+    if (quizzz && check === answer.answer_us) {
       ++result.point;
       result.checkedAnswers.push({
         index: index,
@@ -162,6 +161,7 @@ const mode2Submit = (quizzzes: any[], answers: any[]) => {
       result.checkedAnswers.push({
         index: index,
         _id: answer._id,
+        answer_fc: quizzz.answer_fc,
         correct: false,
       });
     } else {
@@ -169,8 +169,7 @@ const mode2Submit = (quizzzes: any[], answers: any[]) => {
     }
   });
   return result;
-
-}
+};
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { quizzzyId } = req.params;
