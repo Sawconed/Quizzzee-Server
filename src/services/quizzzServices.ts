@@ -171,3 +171,12 @@ export const deleteQuizzz = async (req: Request, res: Response) => {
     res.status(400).json(err);
   }
 };
+
+export const deleteAllQuizzzes = async (req: Request, res: Response) => {
+  try {
+    await Quizzz.deleteMany();
+    res.status(200).json({ message: "All quizzzes deleted successfully" });
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
