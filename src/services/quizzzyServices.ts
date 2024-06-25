@@ -2,7 +2,7 @@ import { Request, Response } from "express-serve-static-core";
 import Quizzzy from "../models/Quizzzy";
 import Quizzz from "../models/Quizzz";
 import ExcelJS from "exceljs";
-import mongoose from "mongoose";
+import mongoose, { Error } from "mongoose";
 import User from "../models/User";
 
 const handleError = (err: any) => {
@@ -273,3 +273,64 @@ export const downloadCSVSample = (req: Request, res: Response) => {
     console.log(error);
   }
 };
+
+export const exportQuizzzy = async (req: Request, res: Response) => {
+  const { quizzzyId } = req.params;
+
+  try {
+    const quizzzy = await Quizzzy.findById(quizzzyId,
+      {
+        isPrivate: 0,
+        isActive: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+        duration: 0,
+      }
+    )
+      .populate(
+        {
+          path: "createdBy",
+          select: "username -_id"
+        }
+      )
+      .populate(
+        {
+          path: "quizzzes",
+          select: "text answer_fc -_id"
+        }
+      )
+
+    if (!quizzzy) {
+      return res.status(404).json({ message: "Quizzzy not found" });
+    }
+
+    let workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Quizzzy");
+
+    sheet.columns = [
+      { header: "question", key: "text", width: 30 },
+      { header: "answer", key: "answer_fc", width: 30 },
+    ];
+
+    quizzzy.quizzzes.forEach((quizz: any) => {
+      sheet.addRow(quizz);
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${quizzzy.title}-${(quizzzy.createdBy as any).username}.xlsx`
+    );
+
+    workbook.xlsx.write(res).then(() => {
+      res.end();
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error exporting Quizzzy", error: (error as Error).message });
+  }
+}
