@@ -114,7 +114,7 @@ export const getAllQuizzzyWithUserID = async (req: Request, res: Response) => {
 };
 
 export const createQuizzzy = async (req: Request, res: Response) => {
-  const { createdBy, title, description, tags, quizzzes } = req.body;
+  const { createdBy, title, description, tags, quizzzes, isPrivate } = req.body;
   try {
     const newQuizzzes = quizzzes.map((quizz: any) => {
       return {
@@ -131,6 +131,7 @@ export const createQuizzzy = async (req: Request, res: Response) => {
       description,
       tags,
       quizzzes: createdQuizzzes.map((quizz) => quizz._id),
+      isPrivate,
     }).save();
 
     res.status(201).json(newQuizzzy);
