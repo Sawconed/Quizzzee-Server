@@ -11,6 +11,7 @@ import {
   downloadCSVSample,
   getAllQuizzzyWithUserID,
   getAllFavoriteQuizzzy,
+  exportQuizzzy,
 } from "../services/quizzzyServices";
 
 import { createExam, submitAnswer } from "../services/examServices";
@@ -32,5 +33,6 @@ quizzzyRoutes.post("/:quizzzyId/submit", submitAnswer);
 
 quizzzyRoutes.get("/export/sample/excel", downloadExcelSample);
 quizzzyRoutes.get("/export/sample/csv", downloadCSVSample);
+quizzzyRoutes.get("/export/:quizzzyId", exportQuizzzy);
 
 export default quizzzyRoutes;
