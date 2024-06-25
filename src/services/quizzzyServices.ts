@@ -165,6 +165,13 @@ export const deleteQuizzzy = async (req: Request, res: Response) => {
     if (!deletedQuizzzy) {
       return res.status(404).json({ message: "Quizzzy not found" });
     }
+
+    await Quizzz.deleteMany({ _id: { $in: deletedQuizzzy.quizzzes } });
+    await User.updateMany(
+      { favorites: quizzzyId },
+      { $pull: { favorites: quizzzyId } }
+    );
+    
     res.status(200).json({ message: "Quizzzy deleted successfully" });
   } catch (err) {
     const errors = handleError(err);
