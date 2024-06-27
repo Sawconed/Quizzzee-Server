@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { isUserBanned } from "../services/userServices";
 
 dotenv.config({ path: [".env.local", ".env"] });
 
@@ -28,12 +29,11 @@ export const verifyJWT = async (
       return res.status(401).send({ message: "Unauthorized: Invalid token" });
     }
     req.decoded = decoded;
-    console.log(req.body);
     next();
   });
 };
 
-export const verifyUser = async (
+export const verifyUser = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -41,11 +41,64 @@ export const verifyUser = async (
   if (req.decoded && req.decoded.role === "user") {
     return next();
   } else {
-    return res
-      .status(403)
-      .send({
-        message:
-          "Unauthorized: You are not authorized to perform this operation",
+    return res.status(403).send({
+      message: "Unauthorized: You are not authorized to perform this operation",
+    });
+  }
+};
+
+export const verifyAdmin = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.decoded && req.decoded.role === "admin") {
+    return next();
+  } else {
+    return res.status(403).send({
+      message: "Unauthorized: You are not authorized to perform this operation",
+    });
+  }
+};
+
+export const verifySuperAdmin = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.decoded && req.decoded.role === "superAdmin") {
+    return next();
+  } else {
+    return res.status(403).send({
+      message: "Unauthorized: You are not authorized to perform this operation",
+    });
+  }
+};
+
+export const checkUserBan = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await isUserBanned(req.decoded.id);
+
+    if (user === true) {
+      return next();
+    } else if (user === false) {
+      return res.status(403).send({
+        message: "Forbidden: User is banned",
       });
+    } else {
+      return res.status(404).send({
+        message: "Not Found: User does not exist",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({
+      message:
+        "Internal Server Error: An error occurred while checking user status",
+    });
   }
 };

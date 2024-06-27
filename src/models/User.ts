@@ -1,8 +1,10 @@
 import mongoose, { Model } from "mongoose";
 import bcrypt from "bcrypt";
 
-interface UserModel<T extends { login: (...args: any[]) => Promise<any> }> extends Model<Document> {
-  login: T['login'];
+interface UserModel<T extends { login: (...args: any[]) => Promise<any> }>
+  extends Model<Document> {
+  login: T["login"];
+  isActive(_id: string): Promise<boolean>;
 }
 
 /**
@@ -64,96 +66,99 @@ interface UserModel<T extends { login: (...args: any[]) => Promise<any> }> exten
  *           createdAt: 2021-07-21T14:00:00.000Z
  *           updatedAt: 2021-07-21T14:00:00.000Z
  */
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: (v: string) => {
-        return /^[a-zA-Z0-9_]{3,20}$/.test(v); // 3-20 characters, letters, numbers, and underscores only
+const userSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: (v: string) => {
+          return /^[a-zA-Z0-9_]{3,20}$/.test(v); // 3-20 characters, letters, numbers, and underscores only
+        },
+        message: (props: any) => `${props.value} is not a valid username!`,
       },
-      message: (props: any) => `${props.value} is not a valid username!`
+      lowercase: true,
+      unique: true,
     },
-    lowercase: true,
-    unique: true
-  },
-  email: {
-    type: String,
-    required: [true, "Email is required"],
-    unique: true,
-    trim: true,
-    validate: {
-      validator: (v: string) => {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); // Email regex
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      validate: {
+        validator: (v: string) => {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); // Email regex
+        },
+        message: (props: any) => `${props.value} is not a valid email!`,
       },
-      message: (props: any) => `${props.value} is not a valid email!`
+      lowercase: true,
     },
-    lowercase: true
-  },
-  password: {
-    type: String,
-    required: [true, "Password is required"],
-    trim: true,
-    minLength: [6, "Password must be at least 6 characters long"],
-  },
-  firstName: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: (v: string) => {
-        return /^[a-zA-Z\s]{1,20}$/.test(v); // 1-20 characters, letters only
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      trim: true,
+      minLength: [6, "Password must be at least 6 characters long"],
+    },
+    firstName: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: (v: string) => {
+          return /^[a-zA-Z\s]{1,20}$/.test(v); // 1-20 characters, letters only
+        },
+        message: (props: any) => `${props.value} is not a valid first name!`,
       },
-      message: (props: any) => `${props.value} is not a valid first name!`
+      lowercase: true,
     },
-    lowercase: true
-  },
-  lastName: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: (v: string) => {
-        return /^[a-zA-Z\s]{1,20}$/.test(v); // 1-20 characters, letters only
+    lastName: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: (v: string) => {
+          return /^[a-zA-Z\s]{1,20}$/.test(v); // 1-20 characters, letters only
+        },
+        message: (props: any) => `${props.value} is not a valid last name!`,
       },
-      message: (props: any) => `${props.value} is not a valid last name!`
+      lowercase: true,
     },
-    lowercase: true
-  },
-  birthDate: {
-    type: String,
-    validate: {
-      validator: (v: string) => {
-        return /^\d{4}-\d{2}-\d{2}$/.test(v); // Date format
+    birthDate: {
+      type: String,
+      validate: {
+        validator: (v: string) => {
+          return /^\d{4}-\d{2}-\d{2}$/.test(v); // Date format
+        },
+        message: (props: any) => `${props.value} is not a valid date!`,
       },
-      message: (props: any) => `${props.value} is not a valid date!`
+    },
+    image: {
+      type: String,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    favorites: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Quizzzy",
+      default: [],
+    },
+    role: {
+      type: String,
+      default: "user",
     },
   },
-  image: {
-    type: String,
-  },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-  favorites: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Quizzzy",
-    default: []
-  },
-  role: {
-    type: String,
-    default: "user",
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);
 
   next();
-})
+});
 
 userSchema.static("login", async function (email: string, password: string) {
-  const user = await this.findOne({ email }) as any;
+  const user = (await this.findOne({ email })) as any;
 
   if (user) {
     const auth = await bcrypt.compare(password, user.password);
@@ -168,9 +173,22 @@ userSchema.static("login", async function (email: string, password: string) {
   throw Error("Incorrect Email");
 });
 
+userSchema.static("isActive", async function (_id: string) {
+  const user = (await this.findById(_id).select("isActive")) as any;
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user.isActive;
+});
+
 // const User = mongoose.model("User", userSchema);
 
-const User = mongoose.model<Document, UserModel<{ login: (...args: any[]) => Promise<any> }>>('User', userSchema);
-
+const User = mongoose.model<
+  Document,
+  UserModel<{
+    login: (...args: any[]) => Promise<any>;
+    isActive: (_id: string) => Promise<boolean>;
+  }>
+>("User", userSchema);
 
 export default User;

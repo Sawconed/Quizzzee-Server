@@ -47,7 +47,11 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const user = await User.login(email, password);
-
+    if (!user.isActive) {
+      return res.status(403).send({
+        message: "Forbidden: User is banned",
+      });
+    }
     const token = createToken(
       user._id,
       user.role,
