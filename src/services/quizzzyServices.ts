@@ -16,15 +16,8 @@ const handleError = (err: any) => {
 };
 
 export const getAllQuizzzy = async (req: Request, res: Response) => {
-  const query = req.query;
   try {
-    let quizzzyQuery = {};
-    if (query.isShowAll === "true") {
-      quizzzyQuery = {};
-    } else {
-      quizzzyQuery = { isPrivate: false };
-    }
-    const quizzzies = await Quizzzy.find(quizzzyQuery)
+    const quizzzies = await Quizzzy.find({ ...req.query })
       .populate({
         path: "quizzzes",
         select: "text answer_fc",
@@ -43,10 +36,9 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
 export const getAllFavoriteQuizzzy = async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
-    const quizzzies = await User.findById(userId)
+    const quizzzies = await User.find({ ...req.query, _id: userId })
       .populate({
         path: "favorites",
-        match: { isPrivate: false },
         populate: {
           path: "createdBy",
           select: "username -_id",
@@ -90,12 +82,7 @@ export const getQuizzzy = async (req: Request, res: Response) => {
 export const getAllQuizzzyWithUserID = async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
-    const quizzzies = await Quizzzy.find({
-      isPrivate: false,
-      createdBy: {
-        $in: new mongoose.Types.ObjectId(userId),
-      },
-    })
+    const quizzzies = await Quizzzy.find({ ...req.query, createdBy: userId })
       .populate({
         path: "createdBy",
         select: "username -_id",
@@ -171,7 +158,7 @@ export const deleteQuizzzy = async (req: Request, res: Response) => {
       { favorites: quizzzyId },
       { $pull: { favorites: quizzzyId } }
     );
-    
+
     res.status(200).json({ message: "Quizzzy deleted successfully" });
   } catch (err) {
     const errors = handleError(err);
@@ -278,28 +265,22 @@ export const exportQuizzzy = async (req: Request, res: Response) => {
   const { quizzzyId } = req.params;
 
   try {
-    const quizzzy = await Quizzzy.findById(quizzzyId,
-      {
-        isPrivate: 0,
-        isActive: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        __v: 0,
-        duration: 0,
-      }
-    )
-      .populate(
-        {
-          path: "createdBy",
-          select: "username -_id"
-        }
-      )
-      .populate(
-        {
-          path: "quizzzes",
-          select: "text answer_fc -_id"
-        }
-      )
+    const quizzzy = await Quizzzy.findById(quizzzyId, {
+      isPrivate: 0,
+      isActive: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+      duration: 0,
+    })
+      .populate({
+        path: "createdBy",
+        select: "username -_id",
+      })
+      .populate({
+        path: "quizzzes",
+        select: "text answer_fc -_id",
+      });
 
     if (!quizzzy) {
       return res.status(404).json({ message: "Quizzzy not found" });
@@ -324,13 +305,18 @@ export const exportQuizzzy = async (req: Request, res: Response) => {
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${quizzzy.title}-${(quizzzy.createdBy as any).username}.xlsx`
+      `attachment; filename=${quizzzy.title}-${
+        (quizzzy.createdBy as any).username
+      }.xlsx`
     );
 
     workbook.xlsx.write(res).then(() => {
       res.end();
     });
   } catch (error) {
-    res.status(500).json({ message: "Error exporting Quizzzy", error: (error as Error).message });
+    res.status(500).json({
+      message: "Error exporting Quizzzy",
+      error: (error as Error).message,
+    });
   }
-}
+};
