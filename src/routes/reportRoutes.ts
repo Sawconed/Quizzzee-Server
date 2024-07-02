@@ -1,14 +1,24 @@
 import { Router } from "express";
-import { createReport, deleteReport, getReportById, getReports } from "../services/reportServices";
+import {
+  createReport,
+  deleteReport,
+  getReportById,
+  getReports,
+} from "../services/reportServices";
+import {
+  verifyAdmin,
+  verifyJWT,
+  verifyUser,
+} from "../middlewares/authMiddlewares";
 
 const reportRoutes = Router();
 
-reportRoutes.get("/", getReports);
+reportRoutes.get("/", verifyJWT, verifyAdmin, getReports);
 
-reportRoutes.get("/:reportId", getReportById);
+reportRoutes.get("/:reportId", verifyJWT, verifyAdmin, getReportById);
 
-reportRoutes.post("/", createReport);
+reportRoutes.post("/", verifyJWT, verifyUser, createReport);
 
-reportRoutes.delete("/:reportId", deleteReport);
+reportRoutes.delete("/:reportId", verifyJWT, verifyAdmin, deleteReport);
 
 export default reportRoutes;
