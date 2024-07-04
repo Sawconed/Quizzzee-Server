@@ -8,6 +8,7 @@ import {
   removeFavorite,
   unblockUser,
   updateUser,
+  updateUserImage,
 } from "../services/userServices";
 import {
   verifyAdmin,
@@ -16,6 +17,9 @@ import {
 } from "../middlewares/authMiddlewares";
 
 const userRoutes = Router();
+import { storage } from "../utils/Cloudinary/storage";
+import multer from 'multer';
+const upload = multer({ storage });
 
 userRoutes.get("/", getUsers);
 
@@ -24,6 +28,8 @@ userRoutes.get("/:userId", verifyJWT, verifyUser, getUser);
 // userRoutes.post("/"); // Not supported
 
 userRoutes.put("/:userId", verifyJWT, verifyUser, updateUser);
+
+userRoutes.put("/image/upload/:userId", verifyJWT, verifyUser, upload.single('image'), updateUserImage);
 
 userRoutes.put("/block/:userId", verifyJWT, verifyAdmin, blockUser);
 
