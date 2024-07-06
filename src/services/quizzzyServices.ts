@@ -67,7 +67,7 @@ export const getQuizzzy = async (req: Request, res: Response) => {
       })
       .populate({
         path: "createdBy",
-        select: "username -_id",
+        select: "username",
       })
       .exec();
     if (!quizzzy) {

@@ -28,7 +28,6 @@ quizzzyRoutes.get("/:quizzzyId", getQuizzzy);
 quizzzyRoutes.get(
   "/:userId/my_quizzzy",
   verifyJWT,
-  verifyUser,
   getAllQuizzzyWithUserID
 );
 quizzzyRoutes.get(

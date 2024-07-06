@@ -23,7 +23,7 @@ const upload = multer({ storage });
 
 userRoutes.get("/", getUsers);
 
-userRoutes.get("/:userId", verifyJWT, verifyUser, getUser);
+userRoutes.get("/:userId", verifyJWT, getUser);
 
 // userRoutes.post("/"); // Not supported
 
