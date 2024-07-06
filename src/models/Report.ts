@@ -19,6 +19,10 @@ const reportSchema = new mongoose.Schema({
         type: String,
         default: "Not Checked",
     },
+    reason: {
+        type: String,
+        required: [true, "Reason is required"]
+    },
     message: {
         type: String,
     },
