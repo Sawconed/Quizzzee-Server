@@ -1,6 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import Report from "../models/Report";
 import User from "../models/User";
+import Quizzzy from "../models/Quizzzy";
 
 const handleError = (err: any) => {
   let errors: { [key: string]: string } = {
@@ -19,8 +20,9 @@ const handleError = (err: any) => {
 };
 
 export const getReports = async (req: Request, res: Response) => {
+  console.log(req.query);
   try {
-    const reports = await Report.find();
+    const reports = await Report.find({...req.query});
     res.status(200).json(reports);
   } catch (error) {
     res.status(400).json(error);
@@ -119,7 +121,8 @@ const resovledReportBlockUser = async (resolvedReport: any, res: Response) => {
     return;
   }
   try {
-    const blockedUser = await User.findByIdAndUpdate(resolvedReport.createdBy, {
+    const reportedId = await Quizzzy.findById(resolvedReport.quizzzyId) as any;
+    const blockedUser = await User.findByIdAndUpdate(reportedId.createdBy._id, {
       isActive: false,
     });
     if (!blockedUser) {
