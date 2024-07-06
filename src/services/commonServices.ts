@@ -60,7 +60,7 @@ export const login = async (req: Request, res: Response) => {
 
     // res.cookie("jwt", token, { httpOnly: true, maxAge: 60 * 60 * 1000 * (rememberMe === "true" ? 3 * 24 : 1) });
 
-    res.status(201).json({ user_id: user._id, access: token });
+    res.status(201).json({ user_id: user._id, access: token, role: user.role });
   } catch (error) {
     const errors = handleError(error);
     res.status(400).send(errors);
