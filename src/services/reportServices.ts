@@ -20,7 +20,6 @@ const handleError = (err: any) => {
 };
 
 export const getReports = async (req: Request, res: Response) => {
-  console.log(req.query);
   try {
     const reports = await Report.find({...req.query});
     res.status(200).json(reports);

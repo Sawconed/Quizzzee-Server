@@ -4,6 +4,7 @@ import {
   createAdmin,
   deleteAdmin,
   getAdmin,
+  getAdminActivities,
   getAdmins,
   unblockAdmin,
 } from "../services/adminServices";
@@ -19,13 +20,15 @@ adminRoutes.get("/", verifyJWT, verifySuperAdmin, getAdmins); // Only return adm
 
 adminRoutes.get("/:adminId", verifyJWT, verifySuperAdmin, getAdmin);
 
+adminRoutes.get("/:adminId/history",verifyJWT, verifySuperAdmin, getAdminActivities);
+
 adminRoutes.post("/", verifyJWT, verifySuperAdmin, createAdmin);
 
 // adminRoutes.put("/:adminId", updateAdmin); // Not supported
 
-adminRoutes.put("/block/:adminId", verifyJWT, verifySuperAdmin, blockAdmin); // Block admin
+adminRoutes.put("/block/:userId", verifyJWT, verifySuperAdmin, blockAdmin); // Block admin
 
-adminRoutes.put("/unblock/:adminId", verifyJWT, verifySuperAdmin, unblockAdmin); // Block admin
+adminRoutes.put("/unblock/:userId", verifyJWT, verifySuperAdmin, unblockAdmin); // Block admin
 
 adminRoutes.delete("/:adminId", verifyJWT, verifySuperAdmin, deleteAdmin);
 

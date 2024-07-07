@@ -1,6 +1,7 @@
 //TODO T chi update tam de no khong loi, can sua lai can than
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
+import Report from "../models/Report";
 
 const handleError = (err: any) => {
   let errors: { [key: string]: string } = { email: "", password: "" };
@@ -84,10 +85,10 @@ export const createAdmin = async (req: Request, res: Response) => {
 // }
 
 export const blockAdmin = async (req: Request, res: Response) => {
-  const { adminId } = req.params;
+  const { userId } = req.params;
 
   try {
-    const admin = await User.findByIdAndUpdate(adminId, { isActive: false });
+    const admin = await User.findByIdAndUpdate(userId, { isActive: false });
 
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
@@ -100,10 +101,10 @@ export const blockAdmin = async (req: Request, res: Response) => {
 };
 
 export const unblockAdmin = async (req: Request, res: Response) => {
-  const { adminId } = req.params;
+  const { userId } = req.params;
 
   try {
-    const admin = await User.findByIdAndUpdate(adminId, { isActive: true });
+    const admin = await User.findByIdAndUpdate(userId, { isActive: true });
 
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
@@ -128,5 +129,25 @@ export const deleteAdmin = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Admin deleted successfully" });
   } catch (error) {
     res.status(400).json(error);
+  }
+};
+
+export const getAdminActivities = async (req: Request, res: Response) => {
+  const { adminId } = req.params;
+  try {
+    const result = await getAdminResolvedHistory(adminId);
+    console.log(adminId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
+const getAdminResolvedHistory = async (resolvedBy: string) => {
+  try {
+    const reports = await Report.find({ resolvedBy });
+    return reports;
+  } catch (error) {
+    throw new Error(`Error retrieving reports: ${(error as Error).message}`);
   }
 };

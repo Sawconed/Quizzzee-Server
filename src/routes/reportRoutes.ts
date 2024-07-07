@@ -9,12 +9,15 @@ import {
 import {
   verifyAdmin,
   verifyJWT,
+  verifySuperAdmin,
   verifyUser,
 } from "../middlewares/authMiddlewares";
 
 const reportRoutes = Router();
 
 reportRoutes.get("/", verifyJWT, verifyAdmin, getReports);
+
+reportRoutes.get("/sadmin", verifyJWT, verifySuperAdmin, getReports);
 
 reportRoutes.get("/:reportId", verifyJWT, verifyAdmin, getReportById);
 
