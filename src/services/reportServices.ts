@@ -21,7 +21,7 @@ const handleError = (err: any) => {
 
 export const getReports = async (req: Request, res: Response) => {
   try {
-    const reports = await Report.find({...req.query});
+    const reports = await Report.find({ ...req.query });
     res.status(200).json(reports);
   } catch (error) {
     res.status(400).json(error);
@@ -86,7 +86,11 @@ export const resolveReport = async (req: Request, res: Response) => {
       break;
     }
     case "Block User": {
-      await resovledReportBlockUser(resolvedReport, res);
+      await resolvedReportBlockUser(resolvedReport, res);
+      break;
+    }
+    case "Block Quizzzy": {
+      await resolvedReportBlockQuizzzy(resolvedReport, res);
       break;
     }
     default: {
@@ -114,37 +118,104 @@ const denyReport = async (resolvedReport: any, res: Response) => {
   }
 };
 
-const resovledReportBlockUser = async (resolvedReport: any, res: Response) => {
+const resolvedReportBlockUser = async (resolvedReport: any, res: Response) => {
   if (!resolvedReport) {
     res.status(404).json({ message: "Report not found" });
     return;
   }
   try {
-    const reportedId = await Quizzzy.findById(resolvedReport.quizzzyId) as any;
-    const blockedUser = await User.findByIdAndUpdate(reportedId.createdBy._id, {
-      isActive: false,
-    });
+    const reportedId = (await Quizzzy.findById(
+      resolvedReport.quizzzyId
+    )) as any;
+    const blockedUser = await User.findByIdAndUpdate(
+      reportedId.createdBy._id,
+      {
+        isActive: false,
+      },
+      {
+        new: true,
+      }
+    );
     if (!blockedUser) {
       return res.status(404).json({ message: "User not found" });
     }
     try {
-        const report = await Report.findByIdAndUpdate(
-          resolvedReport._id,
-          resolvedReport,
-          {
-            new: true,
-          }
-        );
-        if (!report) {
-          res.status(404).json({ message: "Report not found" });
+      const report = await Report.findByIdAndUpdate(
+        resolvedReport._id,
+        resolvedReport,
+        {
+          new: true,
         }
-        res.status(200).json({ message: "Report resolved" });
-      } catch (err) {
-        await User.findByIdAndUpdate(resolvedReport.createdBy, {
-            isActive: true,
-          });
-        res.status(404).json(err);
+      );
+      if (!report) {
+        res.status(404).json({ message: "Report not found" });
       }
+      res.status(200).json({ message: "Report resolved" });
+    } catch (err) {
+      const reportedId = (await Quizzzy.findById(
+        resolvedReport.quizzzyId
+      )) as any;
+      await User.findByIdAndUpdate(
+        reportedId.createdBy._id,
+        {
+          isActive: true,
+        },
+        {
+          new: true,
+        }
+      );
+      res.status(404).json(err);
+    }
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
+const resolvedReportBlockQuizzzy = async (
+  resolvedReport: any,
+  res: Response
+) => {
+  if (!resolvedReport) {
+    res.status(404).json({ message: "Report not found" });
+    return;
+  }
+  try {
+    const reportedQuizzzy = await Quizzzy.findByIdAndUpdate(
+      resolvedReport.quizzzyId,
+      {
+        isActive: false,
+      },
+      {
+        new: true,
+      }
+    );
+    if (!reportedQuizzzy) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    try {
+      const report = await Report.findByIdAndUpdate(
+        resolvedReport._id,
+        resolvedReport,
+        {
+          new: true,
+        }
+      );
+      if (!report) {
+        res.status(404).json({ message: "Report not found" });
+      }
+      res.status(200).json({ message: "Report resolved" });
+    } catch (err) {
+      await Quizzzy.findByIdAndUpdate(
+        resolvedReport.quizzzyId,
+        {
+          isActive: true,
+        },
+        {
+          new: true,
+        }
+      );
+      res.status(404).json(err);
+    }
   } catch (error) {
     res.status(400).json(error);
   }
