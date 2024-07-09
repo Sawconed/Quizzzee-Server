@@ -120,7 +120,7 @@ export const deleteAdmin = async (req: Request, res: Response) => {
   const { adminId } = req.params;
 
   try {
-    const admin = await User.findByIdAndDelete({userID: adminId, role: "admin"});
+    const admin = await User.findByIdAndDelete(adminId, { role: "admin"});
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
