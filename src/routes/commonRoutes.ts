@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, logout, signup } from "../services/commonServices";
+import { forgetPassword, login, logout, signup } from "../services/commonServices";
 import { search } from "../services/searchServices";
 import { verifyJWT } from "../middlewares/authMiddlewares";
 
@@ -12,5 +12,7 @@ commonRoutes.post("/signup", signup);
 commonRoutes.get("/search", search);
 
 commonRoutes.get("/logout", verifyJWT, logout);
+
+commonRoutes.put("/forget-password", forgetPassword);
 
 export default commonRoutes;
