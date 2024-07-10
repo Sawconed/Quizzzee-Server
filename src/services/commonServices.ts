@@ -84,3 +84,30 @@ export const logout = async (req: Request, res: Response) => {
   res.cookie("jwt", "", { maxAge: 1 });
   res.status(200).send("Logged out!");
 };
+
+export const forgetPassword = async (req: Request, res: Response) => {
+  const { email, new_password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).send({
+        message: "User not found!",
+      });
+    }
+
+    if ((user as any).role !== "user") {
+      return res.status(403).send({
+        message: "This account is not have permission to change password!",
+      });
+    }
+
+    (user as any).password = new_password;
+    await user.save();
+
+    res.status(200).send("Password updated successfully!");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
