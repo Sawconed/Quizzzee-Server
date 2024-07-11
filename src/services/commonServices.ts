@@ -99,7 +99,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
 
     if ((user as any).role !== "user") {
       return res.status(403).send({
-        message: "This account is not have permission to change password!",
+        message: "This account does not have permission to change password!",
       });
     }
 
