@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { isUserBanned } from "../services/userServices";
-
-dotenv.config({ path: [".env.local", ".env"] });
 
 interface AuthenticatedRequest extends Request {
   decoded?: any;

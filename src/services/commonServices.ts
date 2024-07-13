@@ -1,6 +1,81 @@
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
+import passport, { use } from "passport";
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.CALLBACK_URL,
+    },
+    async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+      try {
+        const Id: String = profile.id;
+        const email: String = profile.emails[0].value;
+        const username: String = profile.name.givenName.replace(/\s/g, "");
+
+        const currentUser = await User.findOne({ googleId: Id });
+        if (!currentUser) {
+          const newUser = await new User({
+            googleId: Id,
+            username: username,
+            email: email,
+            isGoogleAccount: true,
+          }).save();
+
+          done(null, newUser);
+        } else {
+          done(null, currentUser);
+        }
+      } catch (error) {
+        console.error("Error during authentication:", error);
+        done(error, null);
+      }
+    }
+  )
+);
+
+export const googleAuthenticate = passport.authenticate("google", {
+  scope: ["profile", "email"],
+  accessType: "offline",
+});
+
+interface myUser {
+  _id: string;
+  username: string;
+  role: string;
+}
+
+export const googleCallback = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as myUser | undefined;
+    console.log(user?._id);
+
+    const accessToken = createToken(user?._id, user?.role, 3 * 60 * 60 * 1000);
+    const refreshToken = createToken(
+      user?._id,
+      user?.role,
+      6 * 30 * 24 * 60 * 60 * 1000 // 6 months
+    );
+
+    // Set refreshToken in a cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === "production",
+      maxAge: 6 * 30 * 24 * 60 * 60 * 1000, // 6 month
+    });
+
+    res.status(201).json({ accessToken: accessToken });
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
+// Refresh the access token
+export const refresh = async (req: Request, res: Response) => {};
 
 const handleError = (err: any) => {
   let errors: { [key: string]: string } = {
@@ -33,8 +108,8 @@ const handleError = (err: any) => {
 };
 
 const createToken = (
-  id: string,
-  role: string,
+  id: string | undefined,
+  role: string | undefined,
   expiresIn: number | undefined
 ) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET_KEY as string, {
