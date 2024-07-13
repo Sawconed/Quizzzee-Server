@@ -25,30 +25,8 @@ app.use(cookieParser());
 app.use(cors());
 app.use(morgan("dev"));
 
-// app.use(
-//   cookieSession({
-//     maxAge: 6 * 30 * 24 * 60 * 60 * 1000,
-//     keys: ["cat"],
-//   })
-// );
-
-// app.use(function (request: any, response: any, next) {
-//   if (request.session && !request.session.regenerate) {
-//     request.session.regenerate = (cb: any) => {
-//       cb();
-//     };
-//   }
-//   if (request.session && !request.session.save) {
-//     request.session.save = (cb: any) => {
-//       cb();
-//     };
-//   }
-//   next();
-// });
-
 // Initialize passport
 app.use(passport.initialize());
-// app.use(passport.session());
 
 const PORT = process.env.PORT || 8080;
 const MONGO_URI = process.env.MONGO_URI as string;
