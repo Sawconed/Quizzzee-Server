@@ -95,9 +95,22 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      // required: [true, "Password is required"],
+      required: [
+        function () {
+          return !this.isGoogleAccount;
+        },
+        "Password is required",
+      ],
       trim: true,
       minLength: [6, "Password must be at least 6 characters long"],
+    },
+    googleId: {
+      type: String,
+    },
+    isGoogleAccount: {
+      type: Boolean,
+      default: false,
     },
     firstName: {
       type: String,
@@ -151,9 +164,11 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", async function (next) {
+  if (this.isGoogleAccount) {
+    next();
+  }
   const salt = await bcrypt.genSalt();
-  this.password = await bcrypt.hash(this.password, salt);
-
+  this.password = await bcrypt.hash(this.password!, salt);
   next();
 });
 
