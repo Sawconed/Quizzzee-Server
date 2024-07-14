@@ -68,7 +68,8 @@ export const googleCallback = async (req: Request, res: Response) => {
       maxAge: 6 * 30 * 24 * 60 * 60 * 1000, // 6 month
     });
 
-    res.status(201).json({ accessToken: accessToken });
+    // Redirect to the frontend with the access token
+    res.redirect(`http://localhost:3000/google?token=${accessToken}&user=${user?._id}`);
   } catch (error) {
     res.status(400).json(error);
   }
