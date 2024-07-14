@@ -18,8 +18,9 @@ const handleError = (err: any) => {
 export const getAllQuizzzy = async (req: Request, res: Response) => {
   const searchQuery = req.query;
   const userActive = searchQuery.userActive;
+  delete searchQuery.userActive;
   try {
-    const quizzzies = await Quizzzy.find({ ...req.query })
+    const quizzzies = (await Quizzzy.find({ ...searchQuery })
       .populate({
         path: "quizzzes",
         select: "text answer_fc",
@@ -28,12 +29,12 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
         path: "createdBy",
         select: "username isActive -_id",
       })
-      .exec() as any;
-      if(Boolean(userActive) !== true){
-        const result = quizzzies.filter((f:any) => f.createdBy.isActive == true)
-        return res.status(200).json(result);
-      }
-    res.status(200).json(quizzzies);
+      .exec()) as any;
+    if (userActive == "true") {
+      return res.status(200).json(quizzzies);
+    }
+    const result = quizzzies.filter((f: any) => f.createdBy.isActive == true);
+    return res.status(200).json(result);
   } catch (err) {
     res.status(400).json(err);
   }
@@ -64,13 +65,13 @@ export const getQuizzzy = async (req: Request, res: Response) => {
   const { quizzzyId } = req.params;
   try {
     const { userId } = req.query;
-    let user:any;
-    if(userId){
+    let user: any;
+    if (userId) {
       user = await User.findById(userId);
     }
     const quizzzy = await Quizzzy.findOne({
       _id: quizzzyId,
-      $or: [{isPrivate: false}, {createdBy: user?._id}]
+      $or: [{ isPrivate: false }, { createdBy: user?._id }],
     })
       .populate({
         path: "quizzzes",

@@ -7,7 +7,7 @@ export const search = async (req: Request, res: Response) => {
   const user = searchQuery.user;
   const quizzzy = searchQuery.quizzzy;
   const userActive = searchQuery.userActive;
-  
+
   try {
     if (user !== undefined) {
       const users = await User.find({
@@ -31,11 +31,11 @@ export const search = async (req: Request, res: Response) => {
       if (quizzzes.length === 0) {
         return res.status(404).json({ message: "No quizzzy was found" });
       }
-      if(Boolean(userActive) !== true){
-        const result = quizzzes.filter((f:any) => f.createdBy.isActive == true)
-        return res.status(200).json(result);
+      if(userActive == "true"){
+        return res.status(200).json(quizzzes);
       }
-      return res.status(200).json(quizzzes);
+      const result = quizzzes.filter((f:any) => f.createdBy.isActive == true)
+      return res.status(200).json(result);
     }
 
     if (JSON.stringify(searchQuery) === "{}") {
