@@ -1,5 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
+import Quizzzy from "../models/Quizzzy";
+import Quizzz from "../models/Quizzz";
 
 const handleError = (err: any) => {
   let errors: { [key: string]: string } = {
@@ -91,12 +93,16 @@ export const updateUserImage = async (req: Request, res: Response) => {
   const { userId } = req.params;
 
   try {
-    if (req.file === undefined) return res.status(500).json({ message: "No file provided" });
+    if (req.file === undefined)
+      return res.status(500).json({ message: "No file provided" });
 
-    const updatedUser = await
-      User.findOneAndUpdate({ _id: userId }, { image: req.file.path }, {
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      { image: req.file.path },
+      {
         runValidators: true,
-      });
+      }
+    );
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -106,7 +112,7 @@ export const updateUserImage = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(400).json(error);
   }
-}
+};
 
 export const blockUser = async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -146,17 +152,49 @@ export const unblockUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
   const { userId } = req.params;
-
   try {
-    const deletedUser = await User.findByIdAndDelete(userId);
-
-    if (!deletedUser) {
-      return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(userId);
+    const quizzzies = await Quizzzy.find({ createdBy: user?._id });
+    let quizzes: any[] = [];
+    for (const f of quizzzies) {
+      for (const q of f.quizzzes) {
+        quizzes.push((await Quizzz.findById(String(q))) as any);
+      }
     }
-
+    try {
+      try {
+        try {
+          const arrayCIds = quizzes.map((a) => a._id);
+          const deletedC = await Quizzz.deleteMany({ _id: { $in: arrayCIds } });
+          console.log(deletedC);
+          if (!deletedC) {
+            throw new Error("Error delete C");
+          }
+        } catch (err) {
+          res.status(400).json(err);
+        }
+        const arrayBIds = quizzzies.map((b) => b._id);
+        const deletedB = await Quizzzy.deleteMany({ _id: { $in: arrayBIds } });
+        console.log(deletedB);
+        if (!deletedB) {
+          throw new Error("Error delete B");
+        }
+      } catch (err) {
+        Quizzz.insertMany(quizzes);
+        res.status(400).json(err);
+      }
+      const deleteA = await User.deleteOne({ _id: userId });
+      if (!deleteA) {
+        throw new Error("Error delete A");
+      }
+    } catch (err) {
+      Quizzzy.insertMany(quizzzies);
+      Quizzz.insertMany(quizzes);
+      res.status(400).json(err);
+    }
     res.status(200).json({ message: "User deleted successfully" });
-  } catch (error) {
-    res.status(400).json(error);
+  } catch (err) {
+    res.status(400).json(err);
   }
 };
 
