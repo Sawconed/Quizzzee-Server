@@ -1,7 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
-import passport, { use } from "passport";
+import passport from "passport";
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 passport.use(
@@ -52,7 +52,7 @@ interface myUser {
 export const googleCallback = async (req: Request, res: Response) => {
   try {
     const user = req.user as myUser | undefined;
-    console.log(user?._id);
+    // console.log(user?._id);
 
     const accessToken = createToken(user?._id, user?.role, 3 * 60 * 60 * 1000);
     const refreshToken = createToken(
@@ -64,7 +64,6 @@ export const googleCallback = async (req: Request, res: Response) => {
     // Set refreshToken in a cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
       maxAge: 6 * 30 * 24 * 60 * 60 * 1000, // 6 month
     });
 
@@ -76,7 +75,36 @@ export const googleCallback = async (req: Request, res: Response) => {
 };
 
 // Refresh the access token
-export const refresh = async (req: Request, res: Response) => {};
+export const refresh = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.cookies;
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_SECRET_KEY as string,
+      (err: any, decoded: any) => {
+        if (err) {
+          if (err.name === "TokenExpiredError") {
+            return res
+              .status(403)
+              .send({ message: "Forbidden: Token expired" });
+          }
+          return res
+            .status(401)
+            .send({ message: "Unauthorized: Invalid token" });
+        }
+        // console.log(decoded);
+        const accessToken = createToken(
+          decoded.id,
+          decoded.role,
+          3 * 60 * 60 * 1000
+        );
+        res.status(201).json({ accessToken: accessToken });
+      }
+    );
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
 
 const handleError = (err: any) => {
   let errors: { [key: string]: string } = {
@@ -186,4 +214,4 @@ export const forgetPassword = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(400).send(error);
   }
-}
+};

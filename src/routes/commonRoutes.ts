@@ -35,6 +35,6 @@ commonRoutes.get(
   googleCallback
 );
 
-commonRoutes.post("/auth/google/refresh", refresh);
+commonRoutes.get("/auth/google/refresh", refresh);
 
 export default commonRoutes;
