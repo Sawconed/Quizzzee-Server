@@ -16,6 +16,8 @@ const handleError = (err: any) => {
 };
 
 export const getAllQuizzzy = async (req: Request, res: Response) => {
+  const searchQuery = req.query;
+  const userActive = searchQuery.userActive;
   try {
     const quizzzies = await Quizzzy.find({ ...req.query })
       .populate({
@@ -24,9 +26,13 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
       })
       .populate({
         path: "createdBy",
-        select: "username -_id",
+        select: "username isActive -_id",
       })
-      .exec();
+      .exec() as any;
+      if(Boolean(userActive) !== true){
+        const result = quizzzies.filter((f:any) => f.createdBy.isActive == true)
+        return res.status(200).json(result);
+      }
     res.status(200).json(quizzzies);
   } catch (err) {
     res.status(400).json(err);
@@ -57,9 +63,14 @@ export const getAllFavoriteQuizzzy = async (req: Request, res: Response) => {
 export const getQuizzzy = async (req: Request, res: Response) => {
   const { quizzzyId } = req.params;
   try {
+    const { userId } = req.query;
+    let user:any;
+    if(userId){
+      user = await User.findById(userId);
+    }
     const quizzzy = await Quizzzy.findOne({
       _id: quizzzyId,
-      isPrivate: false,
+      $or: [{isPrivate: false}, {createdBy: user?._id}]
     })
       .populate({
         path: "quizzzes",

@@ -6,6 +6,8 @@ export const search = async (req: Request, res: Response) => {
   const searchQuery = req.query;
   const user = searchQuery.user;
   const quizzzy = searchQuery.quizzzy;
+  const userActive = searchQuery.userActive;
+  
   try {
     if (user !== undefined) {
       const users = await User.find({
@@ -22,9 +24,16 @@ export const search = async (req: Request, res: Response) => {
       const quizzzes = await Quizzzy.find({
         title: { $regex: new RegExp("" + quizzzy, "i") },
         isPrivate: false,
-      });
+      }).populate({
+        path: "createdBy",
+        select: "username isActive -_id",
+      }) as any;
       if (quizzzes.length === 0) {
         return res.status(404).json({ message: "No quizzzy was found" });
+      }
+      if(Boolean(userActive) !== true){
+        const result = quizzzes.filter((f:any) => f.createdBy.isActive == true)
+        return res.status(200).json(result);
       }
       return res.status(200).json(quizzzes);
     }
