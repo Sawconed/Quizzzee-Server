@@ -55,7 +55,7 @@ mongoose
     app.use("/api/report", reportRoutes);
 
     app.use((req, res) => {
-      res.status(404).send("404 Not Found");
+      res.status(404).json({ message: "404 Not Found" });
     });
   })
   .catch((error) => {
