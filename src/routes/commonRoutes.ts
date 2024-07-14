@@ -29,7 +29,7 @@ commonRoutes.get("/auth/google", googleAuthenticate);
 commonRoutes.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/login",
+    failureRedirect: "http://localhost:3000/login",
     session: false,
   }),
   googleCallback
