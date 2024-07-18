@@ -13,9 +13,10 @@ passport.use(
     },
     async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       try {
-        const Id: String = profile.id;
-        const email: String = profile.emails[0].value;
-        const username: String = profile.name.givenName.replace(/\s/g, "");
+        const Id: string = profile.id;
+        const email: string = profile.emails[0].value;
+        const username: string = profile.name.givenName.replace(/\s/g, "");
+        const profilePic: string = profile.photos[0].value;
 
         const currentUser = await User.findOne({ googleId: Id });
         if (!currentUser) {
@@ -24,6 +25,7 @@ passport.use(
             username: username,
             email: email,
             isGoogleAccount: true,
+            image: profilePic,
           }).save();
 
           done(null, newUser);
@@ -68,7 +70,9 @@ export const googleCallback = async (req: Request, res: Response) => {
     });
 
     // Redirect to the frontend with the access token
-    res.redirect(`http://localhost:3000/google?token=${accessToken}&user=${user?._id}`);
+    res.redirect(
+      `http://localhost:3000/google?token=${accessToken}&user=${user?._id}`
+    );
   } catch (error) {
     res.status(400).json(error);
   }
