@@ -18,9 +18,12 @@ const handleError = (err: any) => {
 export const getAllQuizzzy = async (req: Request, res: Response) => {
   const searchQuery = req.query;
   const userActive = searchQuery.userActive;
+  const limit = parseInt(searchQuery.limit as string, 10) || 0;
   delete searchQuery.userActive;
+  delete searchQuery.limit;
   try {
     const quizzzies = (await Quizzzy.find({ ...searchQuery })
+      .limit(limit)
       .populate({
         path: "quizzzes",
         select: "text answer_fc",
