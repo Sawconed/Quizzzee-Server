@@ -179,9 +179,10 @@ export const signup = async (req: Request, res: Response) => {
   const signupData = new User(req.body);
 
   try {
-    const newuser = await signupData.save();
-
-    res.status(201).json({ user: newuser._id });
+    const newUser = await signupData.save();
+    const user: myUser | null = await User.findById(newUser._id);
+    const token = createToken(user?._id, user?.role, 3 * 24 * 60 * 60);
+    res.status(201).json({ user: newUser._id, access: token });
   } catch (error) {
     const errors = handleError(error);
     res.status(400).send(errors);
