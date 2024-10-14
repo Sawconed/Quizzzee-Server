@@ -19,10 +19,24 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
   const searchQuery = req.query;
   const userActive = searchQuery.userActive;
   const limit = parseInt(searchQuery.limit as string, 10) || 0;
+  const latest = searchQuery.latest === "true";
+  const oldest = searchQuery.oldest === "true";
+
   delete searchQuery.userActive;
   delete searchQuery.limit;
+  delete searchQuery.latest;
+  delete searchQuery.oldest;
+
   try {
-    const quizzzies = (await Quizzzy.find({ ...searchQuery })
+    let query = Quizzzy.find({ ...searchQuery });
+
+    if (latest) {
+      query = query.sort({ createdAt: -1 });
+    } else if (oldest) {
+      query = query.sort({ createdAt: 1 });
+    }
+
+    const quizzzies = (await query
       .limit(limit)
       .populate({
         path: "quizzzes",
@@ -33,10 +47,12 @@ export const getAllQuizzzy = async (req: Request, res: Response) => {
         select: "username isActive -_id",
       })
       .exec()) as any;
-    if (userActive == "true") {
+
+    if (userActive === "true") {
       return res.status(200).json(quizzzies);
     }
-    const result = quizzzies.filter((f: any) => f.createdBy.isActive == true);
+
+    const result = quizzzies.filter((f: any) => f.createdBy.isActive === true);
     return res.status(200).json(result);
   } catch (err) {
     res.status(400).json(err);
