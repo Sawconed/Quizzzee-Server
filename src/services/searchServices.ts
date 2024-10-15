@@ -7,6 +7,7 @@ export const search = async (req: Request, res: Response) => {
   const user = searchQuery.user;
   const quizzzy = searchQuery.quizzzy;
   const userActive = searchQuery.userActive;
+  const isPrivate = searchQuery.isPrivate ? searchQuery.isPrivate : false;
 
   try {
     if (user !== undefined) {
@@ -21,9 +22,14 @@ export const search = async (req: Request, res: Response) => {
     }
 
     if (quizzzy !== undefined) {
+      const a = (quizzzy as string).split(":");
+
       const quizzzes = await Quizzzy.find({
-        title: { $regex: new RegExp("" + quizzzy, "i") },
-        isPrivate: false,
+        isPrivate: isPrivate,
+        ...(a[0] !== 'tags' ?
+          { title: { $regex: new RegExp("" + a[0], "i") } } :
+          { tags: { $in: a[1].split(",") } }
+        ),
       }).populate({
         path: "createdBy",
         select: "username isActive -_id",
@@ -31,10 +37,10 @@ export const search = async (req: Request, res: Response) => {
       if (quizzzes.length === 0) {
         return res.status(404).json({ message: "No quizzzy was found" });
       }
-      if(userActive == "true"){
+      if (userActive == "true") {
         return res.status(200).json(quizzzes);
       }
-      const result = quizzzes.filter((f:any) => f.createdBy.isActive == true)
+      const result = quizzzes.filter((f: any) => f.createdBy.isActive == true)
       return res.status(200).json(result);
     }
 
