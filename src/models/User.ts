@@ -1,8 +1,26 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, { Model, model } from "mongoose";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
-interface UserModel<T extends { login: (...args: any[]) => Promise<any> }>
-  extends Model<Document> {
+interface IUser {
+  username: string;
+  email: string;
+  isGoogleAccount: boolean;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  image: string;
+  role: string;
+}
+
+interface IUserMethods {
+  createResetPasswordToken(): string;
+}
+interface UserModel<
+  T extends {
+    login: (...args: any[]) => Promise<any>;
+  }
+> extends Model<Document, IUser, IUserMethods> {
   login: T["login"];
   isActive(_id: string): Promise<boolean>;
 }
@@ -105,6 +123,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minLength: [6, "Password must be at least 6 characters long"],
     },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetTokenExpire: {
+      type: Date,
+    },
     googleId: {
       type: String,
     },
@@ -196,7 +220,15 @@ userSchema.static("isActive", async function (_id: string) {
   return user.isActive;
 });
 
-// const User = mongoose.model("User", userSchema);
+userSchema.methods.createResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetTokenExpire = Date.now() + 5 * 60 * 1000; // expire after 5 minutes
+  return resetToken;
+};
 
 const User = mongoose.model<
   Document,
