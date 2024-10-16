@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   forgetPassword,
+  resetPassword,
   login,
   logout,
   signup,
@@ -22,7 +23,9 @@ commonRoutes.get("/search", search);
 
 commonRoutes.get("/logout", verifyJWT, logout);
 
-commonRoutes.put("/forget-password", forgetPassword);
+commonRoutes.post("/forget_password", forgetPassword);
+
+commonRoutes.post("/reset_password", resetPassword);
 
 commonRoutes.get("/auth/google", googleAuthenticate);
 

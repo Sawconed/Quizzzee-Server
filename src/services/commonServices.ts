@@ -195,28 +195,24 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 export const forgetPassword = async (req: Request, res: Response) => {
-  const { email, new_password } = req.body;
-
+  const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-
     if (!user) {
       return res.status(404).send({
         message: "User not found!",
       });
     }
-
     if ((user as any).role !== "user") {
       return res.status(403).send({
         message: "This account does not have permission to change password!",
       });
     }
-
-    (user as any).password = new_password;
-    await user.save();
-
-    res.status(200).send("Password updated successfully!");
+    const resetToken = user.createResetPasswordToken();
+    console.log(resetToken);
   } catch (error) {
     res.status(400).send(error);
   }
 };
+
+export const resetPassword = async (req: Request, res: Response) => {};
