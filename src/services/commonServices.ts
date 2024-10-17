@@ -182,7 +182,7 @@ export const signup = async (req: Request, res: Response) => {
     const newUser = await signupData.save();
     const user: myUser | null = await User.findById(newUser._id);
     const token = createToken(user?._id, user?.role, 3 * 24 * 60 * 60);
-    res.status(201).json({ user: newUser._id, access: token });
+    res.status(201).json({ user_id: newUser._id, access: token });
   } catch (error) {
     const errors = handleError(error);
     res.status(400).send(errors);
