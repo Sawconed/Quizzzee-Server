@@ -95,7 +95,6 @@ const userSchema = new mongoose.Schema(
         },
         message: (props: any) => `${props.value} is not a valid username!`,
       },
-      lowercase: true,
       unique: true,
     },
     email: {
