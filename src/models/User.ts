@@ -3,25 +3,28 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 
 interface IUser {
+  _id: string;
   username: string;
   email: string;
+  password: string;
+  passwordResetToken: string | undefined;
+  passwordResetTokenExpire: Date | undefined;
+  googleId: string;
   isGoogleAccount: boolean;
   firstName: string;
   lastName: string;
   birthDate: string;
   image: string;
+  isActive: boolean;
+  favorites: [mongoose.Schema.Types.ObjectId];
   role: string;
 }
 
 interface IUserMethods {
   createResetPasswordToken(): string;
 }
-interface UserModel<
-  T extends {
-    login: (...args: any[]) => Promise<any>;
-  }
-> extends Model<Document, IUser, IUserMethods> {
-  login: T["login"];
+interface UserModel extends Model<IUser, {}, IUserMethods> {
+  login(email: string, password: string): Promise<IUser>;
   isActive(_id: string): Promise<boolean>;
 }
 
@@ -84,7 +87,7 @@ interface UserModel<
  *           createdAt: 2021-07-21T14:00:00.000Z
  *           updatedAt: 2021-07-21T14:00:00.000Z
  */
-const userSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema<IUser>(
   {
     username: {
       type: String,
@@ -221,8 +224,8 @@ userSchema.static("isActive", async function (_id: string) {
 });
 
 userSchema.methods.createResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  this.passwordResetToken = crypto
+  const resetToken = crypto.randomBytes(32).toString("hex"); // generate plain token
+  this.passwordResetToken = crypto // generate encrypted token
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
@@ -230,12 +233,6 @@ userSchema.methods.createResetPasswordToken = function () {
   return resetToken;
 };
 
-const User = mongoose.model<
-  Document,
-  UserModel<{
-    login: (...args: any[]) => Promise<any>;
-    isActive: (_id: string) => Promise<boolean>;
-  }>
->("User", userSchema);
+const User = mongoose.model<IUser, UserModel>("User", userSchema);
 
 export default User;
