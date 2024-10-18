@@ -2,6 +2,8 @@ import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
 import passport from "passport";
+import sendEmail from "../utils/email";
+import userRoutes from "../routes/userRoutes";
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 passport.use(
@@ -194,24 +196,69 @@ export const logout = async (req: Request, res: Response) => {
   res.status(200).send("Logged out!");
 };
 
+/**
+ * Handles the password reset request for a user.
+ *
+ * This function performs the following steps:
+ * 1. Checks if the user exists based on the provided email.
+ * 2. Verifies if the user has the role of an ordinary user.
+ * 3. Creates a reset token for the user and saves it.
+ * 4. Sends an email to the user with the password reset link.
+ *
+ * If any error occurs during the process, it clears the reset token and expiration date from the user object.
+ *
+ * @param req - The request object containing the protocol and body with the user's email.
+ * @param res - The response object used to send back the appropriate HTTP response.
+ *
+ * @returns A JSON response indicating the status of the password reset request.
+ */
 export const forgetPassword = async (req: Request, res: Response) => {
+  const protocol: string = req.protocol;
   const { email } = req.body;
+  let user;
   try {
-    const user = await User.findOne({ email });
+    // Check if user exist
+    user = await User.findOne({ email });
     if (!user) {
       return res.status(404).send({
         message: "User not found!",
       });
     }
+
+    // Check if user is an ordinary user
     if ((user as any).role !== "user") {
       return res.status(403).send({
         message: "This account does not have permission to change password!",
       });
     }
+
+    // Create a reset token for this user
     const resetToken = user.createResetPasswordToken();
-    console.log(resetToken);
-  } catch (error) {
-    res.status(400).send(error);
+    await user.save({ validateBeforeSave: false });
+
+    // Send the token back to user email
+    const resetUrl = `${protocol}://${req.get(
+      "host"
+    )}/api/commons/reset_password/${resetToken}`;
+
+    const message = `We have received a password reset request. Please use the below link to reset your password\n\n${resetUrl}\n\nThis reset password link will only valid for 5 minutes.`;
+
+    await sendEmail({
+      email: user.email,
+      subject: "Password change request received.",
+      message: message,
+    });
+
+    res.status(200).json({
+      message: "password reset link send to the user email",
+    });
+  } catch (error: any) {
+    if (user) {
+      user.passwordResetToken = undefined;
+      user.passwordResetTokenExpire = undefined;
+      user.save({ validateBeforeSave: false });
+    }
+    res.status(400).send({ message: error.message });
   }
 };
 

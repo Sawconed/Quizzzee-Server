@@ -25,7 +25,7 @@ commonRoutes.get("/logout", verifyJWT, logout);
 
 commonRoutes.post("/forget_password", forgetPassword);
 
-commonRoutes.post("/reset_password", resetPassword);
+commonRoutes.patch("/reset_password/:token", resetPassword);
 
 commonRoutes.get("/auth/google", googleAuthenticate);
 
