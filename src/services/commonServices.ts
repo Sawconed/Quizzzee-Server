@@ -1,9 +1,9 @@
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
-import passport from "passport";
+import passport, { use } from "passport";
 import sendEmail from "../utils/email";
-import userRoutes from "../routes/userRoutes";
+import crypto from "crypto";
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 passport.use(
@@ -213,7 +213,6 @@ export const logout = async (req: Request, res: Response) => {
  * @returns A JSON response indicating the status of the password reset request.
  */
 export const forgetPassword = async (req: Request, res: Response) => {
-  const protocol: string = req.protocol;
   const { email } = req.body;
   let user;
   try {
@@ -237,11 +236,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
     await user.save({ validateBeforeSave: false });
 
     // Send the token back to user email
-    const resetUrl = `${protocol}://${req.get(
-      "host"
-    )}/api/commons/reset_password/${resetToken}`;
-
-    const message = `We have received a password reset request. Please use the below link to reset your password\n\n${resetUrl}\n\nThis reset password link will only valid for 5 minutes.`;
+    const message = `We have received a password reset request. Please use the below code to reset your password\n\n${resetToken}\n\nThis reset password link will only valid for 5 minutes.`;
 
     await sendEmail({
       email: user.email,
@@ -262,4 +257,27 @@ export const forgetPassword = async (req: Request, res: Response) => {
   }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {};
+export const resetPassword = async (req: Request, res: Response) => {
+  const { code, password } = req.body;
+  // encrypt the upcoming verification code
+  try {
+    const token = crypto.createHash("sha256").update(code).digest("hex");
+    const newPassword = password;
+    // find user that match reset token and reset token not expired
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetTokenExpire: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.status(404).send({ messgae: "The code has expired" });
+    }
+    user.password = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpire = undefined;
+
+    user.save({ validateBeforeSave: true });
+    res.status(200).send({
+      message: "Reset password successfully",
+    });
+  } catch (error: any) {}
+};

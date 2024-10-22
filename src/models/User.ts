@@ -224,7 +224,7 @@ userSchema.static("isActive", async function (_id: string) {
 });
 
 userSchema.methods.createResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex"); // generate plain token
+  const resetToken = crypto.randomBytes(32).toString("hex").slice(0, 6); // generate plain token
   this.passwordResetToken = crypto // generate encrypted token
     .createHash("sha256")
     .update(resetToken)

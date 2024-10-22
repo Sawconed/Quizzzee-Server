@@ -23,9 +23,9 @@ commonRoutes.get("/search", search);
 
 commonRoutes.get("/logout", verifyJWT, logout);
 
-commonRoutes.post("/forget_password", forgetPassword);
+commonRoutes.post("/forgetPassword", forgetPassword);
 
-commonRoutes.patch("/reset_password/:token", resetPassword);
+commonRoutes.patch("/resetPassword", resetPassword);
 
 commonRoutes.get("/auth/google", googleAuthenticate);
 
