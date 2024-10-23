@@ -127,6 +127,10 @@ const handleError = (err: any) => {
     errors.password = "This password is incorrect!";
   }
 
+  if (err.message === "User not found") {
+    errors.email = "There was something wrong!";
+  }
+
   if (err.code === 11000) {
     if (err.keyValue.username)
       errors.username = "This username is already taken!";
@@ -219,9 +223,10 @@ export const forgetPassword = async (req: Request, res: Response) => {
     // Check if user exist
     user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).send({
-        message: "User not found!",
-      });
+      throw Error("User not found");
+      // return res.status(404).send({
+      //   email: "User not found!",
+      // });
     }
 
     // Check if user is an ordinary user
@@ -253,7 +258,8 @@ export const forgetPassword = async (req: Request, res: Response) => {
       user.passwordResetTokenExpire = undefined;
       user.save({ validateBeforeSave: false });
     }
-    res.status(400).send({ message: error.message });
+    const errors = handleError(error);
+    res.status(400).send(errors);
   }
 };
 
