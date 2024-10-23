@@ -69,7 +69,6 @@ export const getAllFavoriteQuizzzy = async (req: Request, res: Response) => {
           path: "createdBy",
           select: "username -_id",
         },
-        select: "title description createdAt updatedAt isPrivate",
       })
       .select("favorites -_id")
       .exec();
@@ -336,8 +335,7 @@ export const exportQuizzzy = async (req: Request, res: Response) => {
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${quizzzy.title}-${
-        (quizzzy.createdBy as any).username
+      `attachment; filename=${quizzzy.title}-${(quizzzy.createdBy as any).username
       }.xlsx`
     );
 
