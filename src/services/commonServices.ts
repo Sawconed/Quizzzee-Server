@@ -117,6 +117,7 @@ const handleError = (err: any) => {
     email: "",
     username: "",
     password: "",
+    code: "",
   };
 
   if (err.message === "Incorrect Email") {
@@ -129,6 +130,10 @@ const handleError = (err: any) => {
 
   if (err.message === "User not found") {
     errors.email = "There was something wrong!";
+  }
+
+  if (err.message === "The code has expired") {
+    errors.code = "The code has expired. Please resend new code";
   }
 
   if (err.code === 11000) {
@@ -264,7 +269,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
-  const { code, password } = req.body;
+  const { email, code, password } = req.body;
   // encrypt the upcoming verification code
   try {
     const token = crypto.createHash("sha256").update(code).digest("hex");
@@ -272,10 +277,11 @@ export const resetPassword = async (req: Request, res: Response) => {
     // find user that match reset token and reset token not expired
     const user = await User.findOne({
       passwordResetToken: token,
+      email: email,
       passwordResetTokenExpire: { $gt: Date.now() },
     });
     if (!user) {
-      return res.status(404).send({ messgae: "The code has expired" });
+      throw Error("The code has expired");
     }
     user.password = newPassword;
     user.passwordResetToken = undefined;
@@ -285,5 +291,8 @@ export const resetPassword = async (req: Request, res: Response) => {
     res.status(200).send({
       message: "Reset password successfully",
     });
-  } catch (error: any) {}
+  } catch (error: any) {
+    const errors = handleError(error);
+    res.status(400).send(errors);
+  }
 };
