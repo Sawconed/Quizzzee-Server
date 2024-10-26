@@ -2,6 +2,8 @@ import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
 import passport from "passport";
+import sendEmail from "../utils/email";
+import crypto from "crypto";
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 passport.use(
@@ -115,6 +117,7 @@ const handleError = (err: any) => {
     email: "",
     username: "",
     password: "",
+    code: "",
   };
 
   if (err.message === "Incorrect Email") {
@@ -123,6 +126,18 @@ const handleError = (err: any) => {
 
   if (err.message === "Incorrect Password") {
     errors.password = "This password is incorrect!";
+  }
+
+  if (err.message === "User not found") {
+    errors.email = "There was something wrong!";
+  }
+
+  if (err.message === "User is banned") {
+    errors.email = "This account has been banned!";
+  }
+
+  if (err.message === "The code has expired") {
+    errors.code = "There was something wrong! Please resend new code";
   }
 
   if (err.code === 11000) {
@@ -156,9 +171,10 @@ export const login = async (req: Request, res: Response) => {
   try {
     const user = await User.login(email, password);
     if (!user.isActive) {
-      return res.status(403).send({
-        message: "Forbidden: User is banned",
-      });
+      throw Error("User is banned");
+      // return res.status(403).send({
+      //   message: "Forbidden: User is banned",
+      // });
     }
     const token = createToken(
       user._id,
@@ -194,29 +210,94 @@ export const logout = async (req: Request, res: Response) => {
   res.status(200).send("Logged out!");
 };
 
+/**
+ * Handles the password reset request for a user.
+ *
+ * This function performs the following steps:
+ * 1. Checks if the user exists based on the provided email.
+ * 2. Verifies if the user has the role of an ordinary user.
+ * 3. Creates a reset token for the user and saves it.
+ * 4. Sends an email to the user with the password reset link.
+ *
+ * If any error occurs during the process, it clears the reset token and expiration date from the user object.
+ *
+ * @param req - The request object containing the protocol and body with the user's email.
+ * @param res - The response object used to send back the appropriate HTTP response.
+ *
+ * @returns A JSON response indicating the status of the password reset request.
+ */
 export const forgetPassword = async (req: Request, res: Response) => {
-  const { email, new_password } = req.body;
-
+  const { email } = req.body;
+  let user;
   try {
-    const user = await User.findOne({ email });
-
+    // Check if user exist
+    user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).send({
-        message: "User not found!",
-      });
+      throw Error("User not found");
+      // return res.status(404).send({
+      //   email: "User not found!",
+      // });
     }
 
+    // Check if user is an ordinary user
     if ((user as any).role !== "user") {
       return res.status(403).send({
         message: "This account does not have permission to change password!",
       });
     }
 
-    (user as any).password = new_password;
-    await user.save();
+    // Create a reset token for this user
+    const resetToken = user.createResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
 
-    res.status(200).send("Password updated successfully!");
+    // Send the token back to user email
+    const message = `We have received a password reset request. Please use the below code to reset your password\n\n${resetToken}\n\nThis reset password link will only valid for 5 minutes.`;
+
+    await sendEmail({
+      email: user.email,
+      subject: "Password change request received.",
+      message: message,
+    });
+
+    res.status(200).json({
+      message: "password reset link send to the user email",
+    });
   } catch (error) {
-    res.status(400).send(error);
+    if (user) {
+      user.passwordResetToken = undefined;
+      user.passwordResetTokenExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+    const errors = handleError(error);
+    res.status(400).send(errors);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { email, code, password } = req.body;
+  // encrypt the upcoming verification code
+  try {
+    const token = crypto.createHash("sha256").update(code).digest("hex");
+    const newPassword = password;
+    // find user that match reset token and reset token not expired
+    const user = await User.findOne({
+      passwordResetToken: token,
+      email: email,
+      passwordResetTokenExpire: { $gt: Date.now() },
+    });
+    if (!user) {
+      throw Error("The code has expired");
+    }
+    user.password = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpire = undefined;
+
+    await user.save();
+    res.status(200).send({
+      message: "Reset password successfully",
+    });
+  } catch (error) {
+    const errors = handleError(error);
+    res.status(400).send(errors);
   }
 };
