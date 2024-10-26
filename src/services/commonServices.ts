@@ -1,7 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
-import passport, { use } from "passport";
+import passport from "passport";
 import sendEmail from "../utils/email";
 import crypto from "crypto";
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
@@ -132,8 +132,12 @@ const handleError = (err: any) => {
     errors.email = "There was something wrong!";
   }
 
+  if (err.message === "User is banned") {
+    errors.email = "This account has been banned!";
+  }
+
   if (err.message === "The code has expired") {
-    errors.code = "The code has expired. Please resend new code";
+    errors.code = "There was something wrong! Please resend new code";
   }
 
   if (err.code === 11000) {
@@ -167,9 +171,10 @@ export const login = async (req: Request, res: Response) => {
   try {
     const user = await User.login(email, password);
     if (!user.isActive) {
-      return res.status(403).send({
-        message: "Forbidden: User is banned",
-      });
+      throw Error("User is banned");
+      // return res.status(403).send({
+      //   message: "Forbidden: User is banned",
+      // });
     }
     const token = createToken(
       user._id,
@@ -257,11 +262,11 @@ export const forgetPassword = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "password reset link send to the user email",
     });
-  } catch (error: any) {
+  } catch (error) {
     if (user) {
       user.passwordResetToken = undefined;
       user.passwordResetTokenExpire = undefined;
-      user.save({ validateBeforeSave: false });
+      await user.save({ validateBeforeSave: false });
     }
     const errors = handleError(error);
     res.status(400).send(errors);
@@ -287,11 +292,11 @@ export const resetPassword = async (req: Request, res: Response) => {
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpire = undefined;
 
-    user.save({ validateBeforeSave: true });
+    await user.save();
     res.status(200).send({
       message: "Reset password successfully",
     });
-  } catch (error: any) {
+  } catch (error) {
     const errors = handleError(error);
     res.status(400).send(errors);
   }
