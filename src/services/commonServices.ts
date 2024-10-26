@@ -172,17 +172,12 @@ export const login = async (req: Request, res: Response) => {
     const user = await User.login(email, password);
     if (!user.isActive) {
       throw Error("User is banned");
-      // return res.status(403).send({
-      //   message: "Forbidden: User is banned",
-      // });
     }
     const token = createToken(
       user._id,
       user.role,
       rememberMe ? 3 * 24 * 60 * 60 : 3600
     );
-
-    // res.cookie("jwt", token, { httpOnly: true, maxAge: 60 * 60 * 1000 * (rememberMe === "true" ? 3 * 24 : 1) });
 
     res.status(201).json({ user_id: user._id, access: token, role: user.role });
   } catch (error) {
@@ -234,9 +229,6 @@ export const forgetPassword = async (req: Request, res: Response) => {
     user = await User.findOne({ email });
     if (!user) {
       throw Error("User not found");
-      // return res.status(404).send({
-      //   email: "User not found!",
-      // });
     }
 
     // Check if user is an ordinary user
