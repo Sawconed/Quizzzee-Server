@@ -1,9 +1,10 @@
 import { Request, Response } from "express-serve-static-core";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
-import passport from "passport";
+import passport, { use } from "passport";
 import sendEmail from "../utils/email";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 passport.use(
@@ -48,36 +49,33 @@ export const googleAuthenticate = passport.authenticate("google", {
 });
 
 interface myUser {
-  _id: string;
+  id: string;
   username: string;
   role: string;
 }
 
 export const googleCallback = async (req: Request, res: Response) => {
-  try {
-    const user = req.user as myUser | undefined;
-    // console.log(user?._id);
-
-    const accessToken = createToken(user?._id, user?.role, 3 * 60 * 60 * 1000);
-    const refreshToken = createToken(
-      user?._id,
-      user?.role,
-      6 * 30 * 24 * 60 * 60 * 1000 // 6 months
-    );
-
-    // Set refreshToken in a cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      maxAge: 6 * 30 * 24 * 60 * 60 * 1000, // 6 month
-    });
-
-    // Redirect to the frontend with the access token
-    res.redirect(
-      `http://localhost:3000/google?token=${accessToken}&user=${user?._id}`
-    );
-  } catch (error) {
-    res.status(400).json(error);
-  }
+  // try {
+  //   const user = req.user as myUser | undefined;
+  //   // console.log(user?._id);
+  //   const accessToken = createToken(user?._id, user?.role, 3 * 60 * 60 * 1000);
+  //   const refreshToken = createToken(
+  //     user?._id,
+  //     user?.role,
+  //     6 * 30 * 24 * 60 * 60 * 1000 // 6 months
+  //   );
+  //   // Set refreshToken in a cookie
+  //   res.cookie("refreshToken", refreshToken, {
+  //     httpOnly: true,
+  //     maxAge: 6 * 30 * 24 * 60 * 60 * 1000, // 6 month
+  //   });
+  //   // Redirect to the frontend with the access token
+  //   res.redirect(
+  //     `http://localhost:3000/google?token=${accessToken}&user=${user?._id}`
+  //   );
+  // } catch (error) {
+  //   res.status(400).json(error);
+  // }
 };
 
 // Refresh the access token
@@ -191,8 +189,8 @@ export const signup = async (req: Request, res: Response) => {
 
   try {
     const newUser = await signupData.save();
-    const user: myUser | null = await User.findById(newUser._id);
-    const token = createToken(user?._id, user?.role, 3 * 24 * 60 * 60);
+    const user: myUser | null = await User.findById(newUser.id);
+    const token = createToken(user?.id, user?.role, 3 * 24 * 60 * 60);
     res.status(201).json({ user_id: newUser._id, access: token });
   } catch (error) {
     const errors = handleError(error);
@@ -287,6 +285,36 @@ export const resetPassword = async (req: Request, res: Response) => {
     await user.save();
     res.status(200).send({
       message: "Reset password successfully",
+    });
+  } catch (error) {
+    const errors = handleError(error);
+    res.status(400).send(errors);
+  }
+};
+
+export const updatePassword = async (req: Request, res: Response) => {
+  const { oldPassword, newPassword } = req.body;
+  const user = req.user as myUser | undefined;
+  const userId = user?.id;
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      throw Error("User not found");
+    }
+
+    // Check if the old password is correct
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw Error("Incorrect Password");
+    }
+
+    // Update the password
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: true });
+
+    res.status(200).send({
+      message: "Password updated successfully",
     });
   } catch (error) {
     const errors = handleError(error);

@@ -26,6 +26,7 @@ export const verifyJWT = async (
       return res.status(401).send({ message: "Unauthorized: Invalid token" });
     }
     req.decoded = decoded;
+    req.user = decoded;
     next();
   });
 };

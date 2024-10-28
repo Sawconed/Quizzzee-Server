@@ -8,6 +8,7 @@ import {
   googleAuthenticate,
   googleCallback,
   refresh,
+  updatePassword,
 } from "../services/commonServices";
 import { search } from "../services/searchServices";
 import { verifyJWT } from "../middlewares/authMiddlewares";
@@ -26,6 +27,8 @@ commonRoutes.get("/logout", verifyJWT, logout);
 commonRoutes.post("/forgetPassword", forgetPassword);
 
 commonRoutes.patch("/resetPassword", resetPassword);
+
+commonRoutes.patch("/updatePassword", verifyJWT, updatePassword);
 
 commonRoutes.get("/auth/google", googleAuthenticate);
 
