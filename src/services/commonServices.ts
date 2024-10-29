@@ -293,9 +293,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 };
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const { oldPassword, newPassword } = req.body;
-  const user = req.user as myUser | undefined;
-  const userId = user?.id;
+  const { userId, oldPassword, newPassword } = req.body;
   try {
     // Find the user by ID
     const user = await User.findById(userId);
