@@ -78,12 +78,13 @@ export const createExam = async (req: Request, res: Response) => {
     let quizzzes = quizzzy.quizzzes;
     if (mode === 1) {
       quizzzes = mode1(quizzzes, amount);
-    } else if (mode === 2) {
-      quizzzes = mode2(quizzzes, amount);
     }
+    // else if (mode === 2) {
+    //   quizzzes = mode2(quizzzes, amount);
+    // }
 
     amount = quizzzes.length;
-    quizzzes = removeAnwer(quizzzes);
+    quizzzes = (mode === 1) ? removeAnwer(quizzzes) : quizzzes;
     res.status(200).json({ amount, mode, quizzzes });
   } catch (err) {
     res.status(400).json(err);
